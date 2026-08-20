@@ -89,15 +89,7 @@ behind, reading as sitting on a plane further back than the rest of the page.
   them (the video frame), so if the lag ever causes visual overlap, they render behind
   rather than on top of the video.
 
-### 4. Navbar link hover underline
-
-Source: `src/components/Navbar.css` (`.navbar-link-underline`).
-
-Not scroll-linked — a plain CSS hover state, included here for completeness. Each nav
-link has a `1px`-tall underline bar beneath it, starting at `width: 0`. On `:hover`, it
-animates to `width: 100%` over `0.25s ease`.
-
-### 5. Reduced-motion behavior
+### 4. Reduced-motion behavior
 
 Source: `src/components/Hero.tsx` (`prefersReducedMotion`).
 
@@ -127,5 +119,5 @@ clipped to the `border-box`, with the actual `border` set to `0.5px solid transp
 | File | Contains |
 | --- | --- |
 | `src/components/Hero.tsx` / `Hero.css` | Hero layout, video grow/zoom, image + hint parallax |
-| `src/components/Navbar.tsx` / `Navbar.css` | Fixed navbar, link hover underline, gradient border |
+| `src/components/Navbar.tsx` / `Navbar.css` | Fixed navbar, gradient border |
 | `src/App.tsx` | Page composition |
