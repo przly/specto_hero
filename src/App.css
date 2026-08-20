@@ -1,0 +1,9 @@
+.next-section {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0c0c0c;
+  color: #a1a1a1;
+  font-size: 15px;
+}

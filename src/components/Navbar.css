@@ -1,0 +1,127 @@
+.navbar {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+
+  display: flex;
+  align-items: center;
+  gap: 128px;
+  padding: 6px 6px 6px 24px;
+
+  border: 0.5px solid transparent;
+  border-radius: 40px;
+  background-image:
+    linear-gradient(rgba(12, 12, 12, 0.86), rgba(12, 12, 12, 0.86)),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.08) 100%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    0 141px 20px rgba(0, 0, 0, 0.01),
+    0 90px 18px rgba(0, 0, 0, 0.04),
+    0 51px 15px rgba(0, 0, 0, 0.15),
+    0 23px 11.5px rgba(0, 0, 0, 0.26),
+    0 6px 6px rgba(0, 0, 0, 0.29);
+}
+
+.navbar-logo {
+  display: block;
+  height: 20px;
+  width: 89px;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.navbar-link {
+  position: relative;
+  display: inline-block;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  color: #f5f5f5;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navbar-link-underline {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1px;
+  width: 0;
+  background: #f5f5f5;
+  transition: width 0.25s ease;
+}
+
+.navbar-link:hover .navbar-link-underline {
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar-link-underline {
+    transition: none;
+  }
+}
+
+.navbar-cta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 10px 14px 10px 18px;
+
+  background: #d4d4d4;
+  border: 0.5px solid #fff;
+  border-radius: 40px;
+
+  color: #0c0c0c;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navbar-cta-icon {
+  position: relative;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.navbar-cta-icon-bar {
+  position: absolute;
+  top: 50%;
+  right: 1px;
+  width: 8px;
+  height: 1.6px;
+  transform-origin: right center;
+}
+
+.navbar-cta-icon-bar-1 {
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.navbar-cta-icon-bar-2 {
+  transform: translateY(-50%) rotate(45deg);
+}
+
+@media (max-width: 900px) {
+  .navbar-links {
+    display: none;
+  }
+
+  .navbar {
+    gap: 24px;
+  }
+}
