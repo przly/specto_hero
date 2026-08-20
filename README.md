@@ -103,17 +103,6 @@ is pinned permanently to its resting/end state:
 The autoplaying, looping background video is also explicitly **paused** (rather than
 looping silently) for these users.
 
-## Visual detail worth matching (not an animation)
-
-Both the video frame and the navbar pill use a `0.5px` border rendered as a **top-to-bottom
-gradient** — white at 20% opacity at the top, fading to 8% opacity at the bottom — rather
-than a flat single-color border.
-
-Since a plain CSS `border-color` can't take a gradient, this uses a two-layer
-`background-image` trick: a solid fill clipped to the `padding-box`, and the gradient
-clipped to the `border-box`, with the actual `border` set to `0.5px solid transparent`
-(see `.hero-video` in `Hero.css` / `.navbar` in `Navbar.css` for the exact CSS).
-
 ## Source map
 
 | File | Contains |
