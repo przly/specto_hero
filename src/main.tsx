@@ -8,7 +8,7 @@ import App from './App.tsx'
 if (import.meta.env.DEV) {
   const favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
   if (favicon) favicon.href = '/favicon-dev.png'
-  document.title = `${document.title} (Local)`
+  document.title = `${document.title} [Local]`
 }
 
 createRoot(document.getElementById('root')!).render(
