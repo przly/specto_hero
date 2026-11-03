@@ -1,0 +1,272 @@
+/* Plain-CSS translation of the website's Tailwind classes for HomeServices.
+   Breakpoints: md 768px, lg 1024px, xl 1280px, 3xl 1480px. */
+
+.home-services-page {
+  min-height: 100vh;
+  background: var(--color-black);
+  color: var(--color-gray-100);
+  font-family: var(--font-primary);
+}
+
+/* Breathing room above the module so it isn't glued to the viewport top */
+.home-services-spacer {
+  height: 96px;
+}
+
+/* ---------- .container (site.css) ---------- */
+.container {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+@media (min-width: 768px) {
+  .container { max-width: 720px; }
+}
+
+@media (min-width: 1024px) {
+  .container { max-width: 960px; }
+}
+
+@media (min-width: 1280px) {
+  .container { max-width: 1280px; }
+}
+
+@media (min-width: 1480px) {
+  .container { max-width: 1496px; }
+}
+
+/* ---------- Module grid ---------- */
+.home-services-grid {
+  display: grid;
+  gap: 32px;
+}
+
+@media (min-width: 1024px) {
+  .home-services-grid { gap: 88px; }
+}
+
+/* ---------- SectionHeader ---------- */
+.section-header {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-header-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--color-gray-100);
+}
+
+.section-header-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 26px;
+  max-width: 488px;
+}
+
+.section-header-arrow {
+  flex-shrink: 0;
+  width: 20px;
+  height: auto;
+  margin-top: 8px;
+  color: var(--color-gray-100);
+}
+
+.section-header-title {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.section-header-aside {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-header-button {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .section-header-title-row { gap: 32px; }
+  .section-header-arrow {
+    width: 32px;
+    margin-top: 6px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .section-header-title-wrap { gap: 24px; }
+  .section-header-arrow { margin-top: 14px; }
+  .section-header-button { display: flex; }
+}
+
+/* ---------- Intro ---------- */
+.editor-text {
+  margin: 0;
+  color: var(--color-gray-400);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+}
+
+.home-services-intro {
+  position: relative;
+}
+
+.home-services-mobile-button {
+  margin-top: 32px;
+}
+
+@media (min-width: 1024px) {
+  .home-services-intro-text { max-width: 360px; }
+  .home-services-mobile-button { display: none; }
+}
+
+/* ---------- Items ---------- */
+.home-services-items {
+  display: grid;
+  column-gap: 8px;
+  row-gap: 48px;
+  margin-top: 48px;
+}
+
+@media (min-width: 768px) {
+  .home-services-items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .home-services-items { margin-top: 0; }
+}
+
+@media (min-width: 1280px) {
+  .home-services-items { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* Item cards: see src/components/ServiceCard.css */
+
+/* ---------- SectionMargin default (Margin 200: h-24 lg:h-50) ---------- */
+.section-margin-default {
+  height: 96px;
+}
+
+@media (min-width: 1024px) {
+  .section-margin-default { height: 200px; }
+}
+
+/* ---------- Button primary / default size ---------- */
+.btn-primary {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  min-height: 45px;
+  padding: 1px;
+  border-radius: 40px;
+  background-image: var(--gradient-btn-primary);
+  color: var(--color-gray-950);
+  font-family: var(--font-primary);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 80ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary:active {
+  box-shadow: none;
+}
+
+.btn-primary-hover-border,
+.btn-primary-active-border,
+.btn-primary-hover-gradient,
+.btn-primary-active-gradient {
+  position: absolute;
+  inset: 0;
+  border-radius: 40px;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.btn-primary-hover-border {
+  background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.2));
+  box-shadow: var(--shadow-btn-primary-hover);
+  transition: opacity 80ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.btn-primary-active-border {
+  background-image: linear-gradient(to bottom, rgb(12 12 12 / 0.5), var(--color-white));
+  transition: opacity 160ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.btn-primary-inner {
+  position: relative;
+  display: grid;
+  grid-template-areas: 'stack';
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  padding: 8px 16px;
+  border-radius: 40px;
+  background: var(--color-gray-300);
+  text-align: center;
+  transition: all 80ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary-hover-gradient {
+  background-image: linear-gradient(to bottom, var(--color-white), var(--color-cloud));
+  transition: opacity 80ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.btn-primary-active-gradient {
+  background-image: linear-gradient(to bottom, var(--color-gray-400), rgb(255 255 255 / 0.9));
+  transition: opacity 160ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.btn-primary-content {
+  grid-area: stack;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: var(--font-weight-medium);
+}
+
+.btn-primary-icon {
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin-right: -4px;
+  color: currentColor;
+}
+
+.btn-primary:hover .btn-primary-hover-border,
+.btn-primary:hover .btn-primary-hover-gradient,
+.btn-primary:active .btn-primary-active-border,
+.btn-primary:active .btn-primary-active-gradient {
+  opacity: 1;
+}
+
+.btn-primary:active .btn-primary-hover-border {
+  box-shadow: none;
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary,
+  .btn-primary * {
+    transition: none;
+  }
+}

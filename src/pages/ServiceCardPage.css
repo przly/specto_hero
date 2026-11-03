@@ -1,0 +1,281 @@
+/* 4-up card grid matching the HomeServices module: 1 col → 2 at md (768) →
+   4 at xl (1280), 8px column gap, 48px row gap, website container widths. */
+
+.service-card-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 48px 0;
+  background: var(--color-black);
+  font-family: var(--font-primary);
+}
+
+.service-card-page-container {
+  width: 100%;
+  flex: 1;
+  display: grid;
+  grid-template-rows: 0 auto auto;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+@media (min-width: 768px) {
+  .service-card-page-container { max-width: 720px; }
+}
+
+@media (min-width: 1024px) {
+  .service-card-page-container { max-width: 960px; }
+}
+
+@media (min-width: 1280px) {
+  .service-card-page-container { max-width: 1280px; }
+}
+
+@media (min-width: 1480px) {
+  .service-card-page-container { max-width: 1496px; }
+}
+
+.service-card-page-toolbar {
+  grid-row: 3;
+  align-self: start;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  margin-top: 64px;
+}
+
+.service-card-page-hint {
+  max-width: 440px;
+  margin: 0;
+  color: var(--color-gray-500);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+.service-card-page-grid {
+  grid-row: 2;
+  display: grid;
+  column-gap: 8px;
+  row-gap: 48px;
+}
+
+@media (min-width: 768px) {
+  .service-card-page-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1280px) {
+  .service-card-page-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+.service-card-page-column {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  min-width: 0;
+}
+
+/* ---------- Per-card loader (sits above the card, outside it) ---------- */
+.sequence-slot {
+  display: flex;
+  margin-top: auto; /* bottom-align across columns with different text lengths */
+  height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 6px 6px 14px;
+
+  border: 0.5px solid transparent;
+  border-radius: 40px;
+  background-image:
+    linear-gradient(var(--color-gray-950), var(--color-gray-950)),
+    var(--gradient-round-border);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+}
+
+.sequence-slot-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sequence-slot-name {
+  overflow: hidden;
+  color: var(--color-gray-100);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sequence-slot-meta {
+  overflow: hidden;
+  color: var(--color-gray-500);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sequence-slot-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.sequence-slot-button {
+  min-height: 30px;
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 40px;
+  background: var(--color-gray-800);
+  color: var(--color-gray-100);
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 150ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.sequence-slot-button:hover {
+  background: var(--color-gray-700);
+}
+
+.sequence-slot-button-primary {
+  background: var(--color-gray-300);
+  color: var(--color-gray-950);
+}
+
+.sequence-slot-button-primary:hover {
+  background: var(--color-white);
+}
+
+.sequence-slot-button:active {
+  transform: scale(0.97);
+}
+
+.sequence-slot-button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.sequence-slot-input {
+  display: none;
+}
+
+/* ---------- Card drop target ---------- */
+.service-card-drop {
+  position: relative;
+}
+
+.service-card-drop-overlay {
+  position: absolute;
+  inset: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border: 1.5px dashed rgb(255 255 255 / 0.45);
+  border-radius: 16px;
+  background: rgb(0 0 0 / 0.7);
+  color: var(--color-gray-100);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sequence-slot-button {
+    transition: none;
+  }
+  .sequence-slot-button:active {
+    transform: none;
+  }
+}
+
+/* ---------- Speed segmented control ---------- */
+.speed-control {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 2px;
+  padding: 3px;
+  border: 0.5px solid transparent;
+  border-radius: 40px;
+  background-image:
+    linear-gradient(var(--color-gray-950), var(--color-gray-950)),
+    var(--gradient-round-border);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.speed-control-button {
+  min-width: 44px;
+  min-height: 30px;
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 40px;
+  background: transparent;
+  color: var(--color-gray-400);
+  font-family: var(--font-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background-color 150ms cubic-bezier(0, 0, 0.2, 1),
+    color 150ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.speed-control-button:hover {
+  color: var(--color-gray-100);
+}
+
+.speed-control-button[aria-pressed='true'] {
+  background: var(--color-gray-300);
+  color: var(--color-gray-950);
+}
+
+.speed-control-button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .speed-control-button {
+    transition: none;
+  }
+}
+
+/* ---------- One-row layout: keep the cards themselves centered ----------
+   At 4-up the per-card controls hang below their card out of flow, so they
+   don't count toward the centered row's height. The toolbar clears them. */
+@media (min-width: 1280px) {
+  /* Equal 1fr rows above and below → the cards row sits in the exact middle
+     of the viewport; the controls live in the bottom row. */
+  .service-card-page-container {
+    grid-template-rows: 1fr auto 1fr;
+  }
+}
+
+@media (min-width: 1280px) {
+  .service-card-page-column {
+    position: relative;
+  }
+
+  .sequence-slot {
+    position: absolute;
+    top: calc(100% + 32px);
+    left: 0;
+    right: 0;
+    margin-top: 0;
+  }
+
+  .service-card-page-toolbar {
+    margin-top: calc(32px + 52px + 48px);
+  }
+}

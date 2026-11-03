@@ -1,0 +1,95 @@
+/* Type styles ported from specto-website (src/styles/headings.css + site.css),
+   with the Tailwind responsive steps written out as plain media queries.
+   md = 768px, lg = 1024px, xl = 1280px, 2xl = 1536px. */
+
+.heading {
+  font-family: var(--font-primary);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-white);
+}
+
+.heading > u {
+  text-decoration-thickness: 1px;
+}
+
+.heading-1 {
+  font-size: var(--text-4xl);
+  letter-spacing: var(--tracking-tight);
+}
+
+.heading-2,
+.heading-3 {
+  font-size: var(--text-3xl);
+}
+
+.heading-3,
+.heading-4,
+.heading-5,
+.heading-6 {
+  line-height: var(--line-height-120);
+}
+
+.heading-4 {
+  font-size: var(--text-xl);
+  letter-spacing: var(--tracking-normal);
+  text-underline-offset: 2px;
+}
+
+.heading-5 {
+  font-size: var(--text-xl);
+}
+
+.heading-6 {
+  font-size: var(--text-lg);
+  letter-spacing: -0.04px;
+}
+
+@media (min-width: 768px) {
+  .heading-1 { font-size: var(--text-5xl); }
+  .heading-2 { font-size: var(--text-4xl); }
+  .heading-3 { font-size: var(--text-4xl); }
+  .heading-4 { font-size: var(--text-2xl); }
+}
+
+@media (min-width: 1024px) {
+  .heading > u { text-decoration-thickness: 2px; }
+  .heading-1 { font-size: var(--text-7xl); }
+  .heading-2 { font-size: var(--text-5xl); }
+  .heading-3 { font-size: var(--text-5xl); }
+  .heading-4 {
+    font-size: var(--text-3xl);
+    letter-spacing: var(--tracking-tight);
+  }
+  .heading-5 { font-size: var(--text-2xl); }
+  .heading-6 { font-size: var(--text-xl); }
+}
+
+@media (min-width: 1280px) {
+  .heading-2 { font-size: var(--text-6xl); }
+}
+
+@media (min-width: 1536px) {
+  .heading-1 { font-size: var(--text-8xl); }
+}
+
+/* Body copy — the website's default `text-base leading-normal text-gray-400` */
+.text-body {
+  font-family: var(--font-primary);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--color-gray-400);
+}
+
+.font-mono {
+  font-family: var(--font-geist);
+}
+
+.font-zero {
+  font-feature-settings: var(--font-features-zero);
+}
+
+.text-shadow-tag {
+  text-shadow: 0px 1px 2px rgb(0 0 0 / 0.1);
+}

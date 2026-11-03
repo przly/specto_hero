@@ -1,15 +1,26 @@
-import Navbar from './components/Navbar'
-import Hero from './components/Hero'
-import './App.css'
+import { Route, Routes } from 'react-router-dom'
+import Home from './pages/Home'
+import Services from './pages/Services'
+import NavbarPage from './pages/NavbarPage'
+import Numbers from './pages/Numbers'
+import LogoShader from './pages/LogoShader'
+import HomeServices from './pages/HomeServices'
+import ServiceCardPage from './pages/ServiceCardPage'
+import RouteSwitcher from './components/RouteSwitcher'
 
 function App() {
   return (
     <>
-      <Navbar />
-      <Hero />
-      <section className="next-section">
-        <p>Rest of the page continues here.</p>
-      </section>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/links" element={<Services />} />
+        <Route path="/navbar" element={<NavbarPage />} />
+        <Route path="/numbers" element={<Numbers />} />
+        <Route path="/logo-shader" element={<LogoShader />} />
+        <Route path="/home-services" element={<HomeServices />} />
+        <Route path="/service-card" element={<ServiceCardPage />} />
+      </Routes>
+      <RouteSwitcher />
     </>
   )
 }

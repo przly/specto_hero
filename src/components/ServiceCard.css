@@ -1,0 +1,47 @@
+.service-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 32px;
+  width: 100%;
+}
+
+.service-card-line {
+  width: 100%;
+  height: 0.5px;
+  background: var(--color-gray-800);
+}
+
+.service-card-image-wrap {
+  width: 100%;
+}
+
+.service-card-image {
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Canvas has no intrinsic size until the first frame decodes — reserve the
+   square so the title/text don't jump down when it arrives. */
+.service-card-sequence {
+  aspect-ratio: 1 / 1;
+}
+
+/* Title modifier="h4" weight="medium" titleClassName="text-3xl!" */
+.service-card-title.heading-4 {
+  margin: 0;
+  font-size: var(--text-3xl);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Text (.editor-text) className="pr-5" */
+.service-card-text {
+  margin: 0;
+  padding-right: 20px;
+  color: var(--color-gray-400);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+}
