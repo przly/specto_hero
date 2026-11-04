@@ -5,12 +5,15 @@ import { cubesFrames, curveFrames, fullFrames } from '../assets/sequences'
 import {
   dataTransferToFiles,
   filesToSequence,
+  isVideoFile,
   revokeSequence,
+  videoToSequence,
   type LoadedSequence,
 } from '../components/sequenceUpload'
 import './ServiceCardPage.css'
 
 const BASE_FPS = 60
+const VIDEO_FPS = 60 // dropped videos are cut into frames at this rate
 const SPEEDS = [1, 2, 4] as const
 type Speed = (typeof SPEEDS)[number]
 
@@ -29,9 +32,13 @@ export default function ServiceCardPage() {
   const [sequences, setSequences] = useState(DEFAULT_SEQUENCES)
   const [errors, setErrors] = useState<(string | null)[]>(() => SERVICE_ITEMS.map(() => null))
   const [dropTarget, setDropTarget] = useState<number | null>(null)
+  // Video decode progress per card (0..1), null when idle.
+  const [decoding, setDecoding] = useState<(number | null)[]>(() => SERVICE_ITEMS.map(() => null))
   const [speed, setSpeed] = useState<Speed>(1)
   const fps = BASE_FPS * speed
   const inputRef = useRef<HTMLInputElement>(null)
+  const videoInputRef = useRef<HTMLInputElement>(null)
+  const decodeControllers = useRef<(AbortController | null)[]>(SERVICE_ITEMS.map(() => null))
   const pickTarget = useRef(0)
   const sequencesRef = useRef(sequences)
 
@@ -44,10 +51,12 @@ export default function ServiceCardPage() {
     inputRef.current?.setAttribute('webkitdirectory', '')
   }, [])
 
-  // Free any uploaded frames when leaving the page.
+  // Free any uploaded frames and stop decodes when leaving the page.
   useEffect(
-    () => () =>
-      sequencesRef.current.forEach((s, i) => s !== DEFAULT_SEQUENCES[i] && revokeSequence(s)),
+    () => () => {
+      decodeControllers.current.forEach((c) => c?.abort())
+      sequencesRef.current.forEach((s, i) => s !== DEFAULT_SEQUENCES[i] && revokeSequence(s))
+    },
     [],
   )
 
@@ -62,10 +71,52 @@ export default function ServiceCardPage() {
   const setError = (index: number, message: string | null) =>
     setErrors((prev) => prev.map((e, i) => (i === index ? message : e)))
 
+  const setDecodeProgress = (index: number, value: number | null) =>
+    setDecoding((prev) => prev.map((d, i) => (i === index ? value : d)))
+
+  // Stop a video still decoding into this card (a newer load or reset wins).
+  const cancelDecode = (index: number) => {
+    decodeControllers.current[index]?.abort()
+    decodeControllers.current[index] = null
+    setDecodeProgress(index, null)
+  }
+
+  const loadVideo = async (index: number, file: File) => {
+    cancelDecode(index)
+    const controller = new AbortController()
+    decodeControllers.current[index] = controller
+    setError(index, null)
+    setDecodeProgress(index, 0)
+
+    try {
+      const next = await videoToSequence(file, {
+        fps: VIDEO_FPS,
+        signal: controller.signal,
+        onProgress: (done, total) => setDecodeProgress(index, done / total),
+      })
+      if (controller.signal.aborted) return revokeSequence(next)
+      setSlot(index, next)
+    } catch (error) {
+      if (controller.signal.aborted) return
+      setError(index, error instanceof Error ? error.message : "Couldn't read that video.")
+    } finally {
+      if (decodeControllers.current[index] === controller) {
+        decodeControllers.current[index] = null
+        setDecodeProgress(index, null)
+      }
+    }
+  }
+
   const load = (index: number, files: File[], name?: string) => {
+    const video = files.find(isVideoFile)
+    if (video) {
+      loadVideo(index, video)
+      return
+    }
+    cancelDecode(index)
     const next = filesToSequence(files, name)
     if (!next) {
-      setError(index, 'No images in that folder.')
+      setError(index, 'No images or video in that drop.')
       return
     }
     setError(index, null)
@@ -95,6 +146,7 @@ export default function ServiceCardPage() {
           {SERVICE_ITEMS.map((item, index) => {
             const sequence = sequences[index]
             const isDefault = sequence === DEFAULT_SEQUENCES[index]
+            const progress = decoding[index]
 
             return (
               <div className="service-card-page-column" key={item.title}>
@@ -135,18 +187,21 @@ export default function ServiceCardPage() {
                   <div className="sequence-slot-info">
                     <span className="sequence-slot-name">{sequence?.name ?? 'Still image'}</span>
                     <span className="sequence-slot-meta">
-                      {errors[index] ??
+                      {progress !== null
+                        ? `Decoding video… ${Math.round(progress * 100)}%`
+                        : errors[index] ??
                         (sequence
                           ? `${sequence.frames.length} frames · ${(sequence.frames.length / fps).toFixed(2)}s`
                           : 'No sequence')}
                     </span>
                   </div>
                   <div className="sequence-slot-actions">
-                    {!isDefault && (
+                    {(!isDefault || progress !== null) && (
                       <button
                         type="button"
                         className="sequence-slot-button"
                         onClick={() => {
+                          cancelDecode(index)
                           setError(index, null)
                           setSlot(index, DEFAULT_SEQUENCES[index])
                         }}
@@ -163,7 +218,18 @@ export default function ServiceCardPage() {
                         inputRef.current?.click()
                       }}
                     >
-                      Choose folder
+                      Folder
+                    </button>
+                    <button
+                      type="button"
+                      className="sequence-slot-button sequence-slot-button-primary"
+                      aria-label={`Choose a video for ${item.title}`}
+                      onClick={() => {
+                        pickTarget.current = index
+                        videoInputRef.current?.click()
+                      }}
+                    >
+                      Video
                     </button>
                   </div>
                 </div>
@@ -174,7 +240,8 @@ export default function ServiceCardPage() {
 
         <div className="service-card-page-toolbar">
           <p className="service-card-page-hint">
-            Hover a card to play its sequence. Drop a folder of frames onto a card, or use its button, to swap it.
+            Hover a card to play its sequence. Drop a folder of frames or a video (cut into frames at 60fps) onto a
+            card, or use its buttons, to swap it.
           </p>
           <div className="speed-control" role="group" aria-label="Playback speed">
             {SPEEDS.map((value) => (
@@ -201,6 +268,16 @@ export default function ServiceCardPage() {
         onChange={(e) => {
           load(pickTarget.current, Array.from(e.target.files ?? []))
           e.target.value = '' // allow re-picking the same folder
+        }}
+      />
+      <input
+        ref={videoInputRef}
+        className="sequence-slot-input"
+        type="file"
+        accept="video/*"
+        onChange={(e) => {
+          load(pickTarget.current, Array.from(e.target.files ?? []))
+          e.target.value = ''
         }}
       />
     </main>
