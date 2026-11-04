@@ -97,6 +97,10 @@
   --color-green: oklch(0.9077 0.2468 130.72);
   --color-yellow: oklch(0.9269 0.195089 103.2532);
 
+  /* Product tag — "Colour" variant (Figma: Product tags / Development) */
+  --color-green-tag-bg: rgb(165 255 1 / 0.05);
+  --color-green-tag-border: rgb(165 255 1 / 0.2);
+
   /* Animations */
   --animate-spectoArrow: spectoArrowAnim 9s ease-in-out infinite;
   --animate-youArrow: youArrowAnim 9s ease-in-out infinite;
@@ -117,6 +121,7 @@
     0 141px 40px 0 rgb(0 0 0 / 0.01), 0 90px 36px 0 rgb(0 0 0 / 0.04), 0 51px 30px 0 rgb(0 0 0 / 0.15),
     0 23px 23px 0 rgb(0 0 0 / 0.26), 0 6px 12px 0 rgb(0 0 0 / 0.29);
   --shadow-inner-glow-tag: inset 0 0 4px 0 rgb(255 255 255 / 0.8);
+  --shadow-inner-glow-green: inset 0px 4px 15px 0px rgb(165 255 1 / 0.15);
   --shadow-orange-glow:
     0 0 10.32px rgb(255 170 77), 0 0 20.64px rgb(255 170 77), 0 0 72.24px rgb(255 170 77),
     0 0 144.44px rgb(255 170 77), 0 0 247.68px rgb(255 170 77), 0 0 433.44px rgb(255 170 77);
