@@ -10,6 +10,7 @@ export const ROUTES = [
   { path: '/home-services', label: 'Home services' },
   { path: '/service-card', label: 'Service card' },
   { path: '/jira-ticket', label: 'Jira ticket' },
+  { path: '/process', label: 'Process' },
 ] as const
 
 export default function RouteSwitcher() {

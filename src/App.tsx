@@ -7,6 +7,7 @@ import LogoShader from './pages/LogoShader'
 import HomeServices from './pages/HomeServices'
 import ServiceCardPage from './pages/ServiceCardPage'
 import JiraTicketPage from './pages/JiraTicketPage'
+import ProcessPage from './pages/ProcessPage'
 import RouteSwitcher from './components/RouteSwitcher'
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
         <Route path="/home-services" element={<HomeServices />} />
         <Route path="/service-card" element={<ServiceCardPage />} />
         <Route path="/jira-ticket" element={<JiraTicketPage />} />
+        <Route path="/process" element={<ProcessPage />} />
       </Routes>
       <RouteSwitcher />
     </>
