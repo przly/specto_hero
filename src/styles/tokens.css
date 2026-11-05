@@ -100,6 +100,13 @@
   /* Product tag — "Colour" variant (Figma: Product tags / Development) */
   --color-green-tag-bg: rgb(165 255 1 / 0.05);
   --color-green-tag-border: rgb(165 255 1 / 0.2);
+  /* Other product tag tones (Figma: Product tags / Strategy, Product, Brand&Comms) */
+  --color-blue-tag-bg: rgb(0 174 255 / 0.05);
+  --color-blue-tag-border: rgb(0 174 255 / 0.2);
+  --color-orange-tag-bg: rgb(255 117 0 / 0.05);
+  --color-orange-tag-border: rgb(255 117 0 / 0.2);
+  --color-yellow-tag-bg: rgb(255 235 0 / 0.05);
+  --color-yellow-tag-border: rgb(255 235 0 / 0.2);
 
   /* Animations */
   --animate-spectoArrow: spectoArrowAnim 9s ease-in-out infinite;
@@ -122,6 +129,9 @@
     0 23px 23px 0 rgb(0 0 0 / 0.26), 0 6px 12px 0 rgb(0 0 0 / 0.29);
   --shadow-inner-glow-tag: inset 0 0 4px 0 rgb(255 255 255 / 0.8);
   --shadow-inner-glow-green: inset 0px 4px 15px 0px rgb(165 255 1 / 0.15);
+  --shadow-inner-glow-blue: inset 0px 4px 15px 0px rgb(0 174 255 / 0.15);
+  --shadow-inner-glow-orange: inset 0px 4px 15px 0px rgb(255 117 0 / 0.15);
+  --shadow-inner-glow-yellow: inset 0px 4px 15px 0px rgb(255 235 0 / 0.15);
   --shadow-orange-glow:
     0 0 10.32px rgb(255 170 77), 0 0 20.64px rgb(255 170 77), 0 0 72.24px rgb(255 170 77),
     0 0 144.44px rgb(255 170 77), 0 0 247.68px rgb(255 170 77), 0 0 433.44px rgb(255 170 77);
@@ -156,6 +166,17 @@
   --gradient-round-border-focused: linear-gradient(360deg, rgb(255 255 255 / 0.6) 0%, rgb(255 255 255 / 0.3) 100%);
   --gradient-round-border-red: linear-gradient(360deg, rgb(251 44 54 / 0.6) 0%, rgb(251 44 54 / 0.4) 100%);
   --gradient-round-border-green: linear-gradient(360deg, rgb(165 255 1 / 0.3) 0%, rgb(165 255 1 / 0.1) 100%);
+
+  /* Motion — transitions.dev tokens used so far (skill: transitions-dev) */
+  --duration-stagger: 40ms; /* per-item stagger offset */
+  --icon-swap-dur: 250ms;
+  --icon-swap-blur: 2px;
+  --icon-swap-start-scale: 0.25;
+  --icon-swap-ease: ease-in-out;
+  --text-swap-dur: 150ms;
+  --text-swap-translate-y: 4px;
+  --text-swap-blur: 2px;
+  --text-swap-ease: ease-in-out;
 
   /* Font features — Aeonik stylistic sets used by every Figma text style
      (ss02 / ss09 / ss10). `.font-zero` adds the slashed zero on top;

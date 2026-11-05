@@ -1,8 +1,130 @@
 .jira-ticket-page {
-  display: grid;
-  place-items: center;
   min-height: 100vh;
   min-height: 100svh;
-  padding: 48px 16px;
+  padding: 0 16px;
   background: var(--color-black);
+}
+
+.jira-scroll {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 48px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* Full-viewport-tall sticky column, ticket centred in it */
+.jira-scroll-sticky {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  height: 100svh;
+}
+
+.jira-scroll-steps {
+  margin: 0;
+  /* Half a viewport above and below so the first and last step can reach the centre */
+  padding: 50vh 0;
+  padding: 50svh 0;
+  list-style: none;
+}
+
+.jira-scroll-step {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 70vh;
+  min-height: 70svh;
+  opacity: 0.3;
+  transition: opacity calc(300ms * var(--motion-slow, 1)) cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.jira-scroll-step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* A step with avatar stages gets more scroll so each stage has room; its
+   copy pins near the middle while the stages play out. */
+.jira-scroll-step[data-staged] {
+  justify-content: flex-start;
+  min-height: 160vh;
+  min-height: 160svh;
+}
+
+.jira-scroll-step[data-staged] .jira-scroll-step-content {
+  position: sticky;
+  top: calc(50vh - 60px);
+  top: calc(50svh - 60px);
+}
+
+.jira-scroll-step[data-active='true'] {
+  opacity: 1;
+}
+
+.jira-scroll-step p,
+.jira-scroll-step h2 {
+  margin: 0;
+}
+
+.jira-scroll-eyebrow {
+  color: var(--color-gray-600);
+  font-size: var(--text-xs);
+  line-height: var(--line-height-120);
+  letter-spacing: var(--tracking-tight);
+}
+
+.jira-scroll-heading {
+  color: var(--color-white);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-120);
+  text-wrap: balance;
+}
+
+.jira-scroll-body {
+  max-width: 36ch;
+  color: var(--color-gray-400);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  text-wrap: pretty;
+}
+
+/* Phone: ticket pins to the top, steps scroll underneath it */
+@media (max-width: 767px) {
+  .jira-scroll {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .jira-scroll-sticky {
+    z-index: 1;
+    height: auto;
+    padding: 16px 0 24px;
+    background: linear-gradient(var(--color-black) 80%, transparent);
+  }
+
+  .jira-scroll-steps {
+    padding: 30vh 0 50vh;
+    padding: 30svh 0 50svh;
+  }
+
+  .jira-scroll-step {
+    min-height: 60vh;
+    min-height: 60svh;
+  }
+
+  .jira-scroll-heading {
+    font-size: var(--text-2xl);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jira-scroll-step {
+    transition: none;
+  }
 }

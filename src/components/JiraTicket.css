@@ -6,10 +6,15 @@
   width: 100%;
   max-width: 360px;
   padding: 16px;
-  border: 0.5px solid var(--color-white);
+  border: 0.5px solid transparent;
   border-radius: 16px;
-  background: var(--color-gray-950);
+  /* Gradient border: fill sits on the padding box, gradient shows through the transparent border */
+  background:
+    linear-gradient(var(--color-gray-950), var(--color-gray-950)) padding-box,
+    linear-gradient(to bottom, rgb(255 255 255 / 0.15), rgb(255 255 255 / 0.06)) border-box;
   font-family: var(--font-primary);
+  /* One phase of the card timeline (see SWAP_PHASE_MS in JiraTicket.tsx) */
+  --swap-phase: calc(190ms * var(--motion-slow, 1));
 }
 
 .jira-ticket p,
@@ -17,11 +22,28 @@
   margin: 0;
 }
 
+/* Slots hold the swapping content. Fixed height so the outgoing copy
+   (popped to absolute by AnimatePresence) never changes the ticket's size. */
+.jira-ticket-slot {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 /* ---------- Header: key + title ---------- */
 .jira-ticket-header {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  width: 100%;
+}
+
+/* Key on the left, priority in the top-right corner */
+.jira-ticket-key-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   width: 100%;
 }
 
@@ -42,19 +64,119 @@
   min-width: 0;
 }
 
+/* ---------- Status check (one element, three states) ----------
+   Forward (scrolling down): the pie sweeps like a clock hand with an
+   ease-in-out sine, then on "done" it swells to fill the ring and the tick lands.
+   Back (scrolling up): the same durations and curves played in reverse, just
+   without the delays so the tick, swell and sweep unwind straight away. */
 .jira-ticket-check {
-  display: flex;
+  --check-color: var(--color-white);
+  /* Pie dash length along its circumference (2π × 2.75 ≈ 17.28): empty / half / full */
+  --check-fill: 0 17.28;
+  --check-pie-scale: 1;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-sine: cubic-bezier(0.37, 0, 0.63, 1);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Out phase: sweep + recolour. In phase: swell, then the tick (ends at 380ms). */
+  --check-sweep: var(--swap-phase) var(--ease-in-out-sine);
+  --check-recolor: var(--swap-phase) ease;
+  --check-fill-delay: var(--swap-phase); /* swell starts as the sweep lands */
+  --check-tick-delay: calc(var(--swap-phase) + 90ms * var(--motion-slow, 1)); /* tick lands once the disc is solid */
+
+  position: relative;
+  display: block;
   flex-shrink: 0;
-  align-items: center;
   width: 16px;
   height: 16px;
-  padding: 2px;
-  border-radius: 999px;
-  background: var(--color-green);
 }
 
-.jira-ticket-check img {
+.jira-ticket-check[data-direction='back'] {
+  --check-fill-delay: 0ms;
+  --check-tick-delay: 0ms;
+}
+
+.jira-ticket-check[data-status='in-progress'] {
+  --check-color: var(--color-yellow);
+  --check-fill: 8.64 17.28;
+}
+
+.jira-ticket-check[data-status='done'] {
+  --check-color: var(--color-green);
+  --check-fill: 17.28 0;
+  /* 5.5px pie radius → 8px: covers the gap up to the ring's outer edge */
+  --check-pie-scale: 1.4545;
+}
+
+.jira-ticket-check svg {
   display: block;
+  overflow: visible;
+}
+
+.jira-ticket-check-ring {
+  fill: none;
+  stroke: var(--check-color);
+  transition: stroke var(--check-recolor);
+}
+
+.jira-ticket-check-pie {
+  fill: none;
+  stroke: var(--check-color);
+  stroke-dasharray: var(--check-fill);
+  /* Rotate so the sweep starts at 12 o'clock */
+  transform: rotate(-90deg) scale(var(--check-pie-scale));
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    stroke-dasharray var(--check-sweep),
+    stroke var(--check-recolor),
+    transform calc(180ms * var(--motion-slow, 1)) var(--ease-out) var(--check-fill-delay);
+}
+
+.jira-ticket-check-tick {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  display: block;
+  opacity: 0;
+  transform: scale(0.8);
+  filter: blur(1px);
+  /* Exit mirrors the entrance below, minus the delay */
+  transition:
+    opacity calc(100ms * var(--motion-slow, 1)) var(--ease-out),
+    transform calc(100ms * var(--motion-slow, 1)) var(--ease-pop),
+    filter calc(100ms * var(--motion-slow, 1)) var(--ease-out);
+}
+
+.jira-ticket-check[data-status='done'] .jira-ticket-check-tick {
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0);
+  transition:
+    opacity calc(100ms * var(--motion-slow, 1)) var(--ease-out) var(--check-tick-delay),
+    transform calc(100ms * var(--motion-slow, 1)) var(--ease-pop) var(--check-tick-delay),
+    filter calc(100ms * var(--motion-slow, 1)) var(--ease-out) var(--check-tick-delay);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jira-ticket-check {
+    --check-sweep: 0ms linear;
+    --check-fill-delay: 0ms;
+    --check-tick-delay: 0ms;
+  }
+
+  .jira-ticket-check-pie {
+    transition:
+      stroke var(--check-recolor),
+      opacity var(--check-recolor);
+  }
+
+  .jira-ticket-check-tick,
+  .jira-ticket-check[data-status='done'] .jira-ticket-check-tick {
+    transform: none;
+    filter: none;
+  }
 }
 
 /* Aeonik/Regular/lg */
@@ -68,32 +190,114 @@
   text-overflow: ellipsis;
 }
 
-/* ---------- Product tag (Development / Colour) ---------- */
+/* ---------- Product tags ---------- */
+.jira-ticket-tags-slot {
+  width: 100%;
+  height: 28px;
+}
+
 .jira-ticket-tags {
+  /* 0.1× review toggle stretches the swap (no-op at --motion-slow: 1) */
+  --text-swap-dur: calc(150ms * var(--motion-slow, 1));
+  /* Forward: out up, in from below. Back: mirrored. */
+  --text-swap-dir: 1;
+  /* Subtler travel than the 4px token: pills barely lift */
+  --text-swap-translate-y: 2px;
+  /* Same base as --duration-stagger, kept separate so tags can be tuned alone */
+  --tag-stagger: 40ms;
+
   display: flex;
   align-items: center;
-  width: 100%;
+  gap: 4px;
+}
+
+.jira-ticket-tags[data-direction='back'] {
+  --text-swap-dir: -1;
+}
+
+/* transitions.dev — Text states swap (04-text-states-swap.md), one per pill.
+   Only change from the snippet: translateY is multiplied by --text-swap-dir
+   so the swap follows the scroll direction. Stagger delays are set inline. */
+.t-text-swap {
+  display: inline-block;
+  transform: translateY(0);
+  filter: blur(0);
+  opacity: 1;
+  transition:
+    transform var(--text-swap-dur) var(--text-swap-ease),
+    filter    var(--text-swap-dur) var(--text-swap-ease),
+    opacity   var(--text-swap-dur) var(--text-swap-ease);
+  will-change: transform, filter, opacity;
+}
+.t-text-swap.is-exit {
+  transform: translateY(calc(var(--text-swap-translate-y) * -1 * var(--text-swap-dir, 1)));
+  filter: blur(var(--text-swap-blur));
+  opacity: 0;
+}
+.t-text-swap.is-enter-start {
+  transform: translateY(calc(var(--text-swap-translate-y) * var(--text-swap-dir, 1)));
+  filter: blur(var(--text-swap-blur));
+  opacity: 0;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-text-swap { transition: none !important; }
 }
 
 .jira-ticket-tag {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  height: 28px;
   padding: 6px 12px;
-  border: 0.5px solid var(--color-green-tag-border);
+  border: 0.5px solid var(--tag-border);
   border-radius: 999px;
-  background: var(--color-green-tag-bg);
-  box-shadow: var(--shadow-inner-glow-green);
+  background: var(--tag-bg);
+  box-shadow: var(--tag-glow);
 }
 
-.jira-ticket-tag img {
+.jira-ticket-tag[data-tone='development'] {
+  --tag-color: var(--color-green);
+  --tag-bg: var(--color-green-tag-bg);
+  --tag-border: var(--color-green-tag-border);
+  --tag-glow: var(--shadow-inner-glow-green);
+}
+
+.jira-ticket-tag[data-tone='strategy'] {
+  --tag-color: var(--color-blue);
+  --tag-bg: var(--color-blue-tag-bg);
+  --tag-border: var(--color-blue-tag-border);
+  --tag-glow: var(--shadow-inner-glow-blue);
+}
+
+.jira-ticket-tag[data-tone='product'] {
+  --tag-color: var(--color-orange);
+  --tag-bg: var(--color-orange-tag-bg);
+  --tag-border: var(--color-orange-tag-border);
+  --tag-glow: var(--shadow-inner-glow-orange);
+}
+
+.jira-ticket-tag[data-tone='brand-comms'] {
+  --tag-color: var(--color-yellow);
+  --tag-bg: var(--color-yellow-tag-bg);
+  --tag-border: var(--color-yellow-tag-border);
+  --tag-glow: var(--shadow-inner-glow-yellow);
+}
+
+.jira-ticket-tag-icon {
   display: block;
   flex-shrink: 0;
 }
 
+/* Figma flips the Strategy mark 180° */
+.jira-ticket-tag[data-tone='strategy'] .jira-ticket-tag-icon {
+  transform: rotate(180deg);
+}
+
 .jira-ticket-tag-label {
   padding-bottom: 2px;
-  color: var(--color-green);
+  color: var(--tag-color);
   font-size: var(--text-sm);
   font-weight: var(--font-weight-medium);
   line-height: var(--leading-none);
@@ -109,18 +313,25 @@
   width: 100%;
 }
 
-.jira-ticket-team,
+/* Avatars and name are both absolutely placed inside the team area, so
+   the belt and the name animate independently of each other's size. */
+.jira-ticket-team {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+}
+
+.jira-ticket-team-name {
+  position: absolute;
+  top: 3px; /* centre the 18px line in the 24px row */
+  right: 0;
+  max-width: calc(100% - 54px); /* clear of the widest avatar stack (3 × 12px + 24px − 6px gap) */
+}
+
 .jira-ticket-priority {
   display: flex;
   align-items: center;
-  min-width: 0;
-}
-
-.jira-ticket-team {
-  gap: 6px;
-}
-
-.jira-ticket-priority {
   flex-shrink: 0;
   gap: 4px;
 }
@@ -144,14 +355,56 @@
 }
 
 .jira-ticket-avatars {
-  display: flex;
-  flex-shrink: 0;
+  /* 0.1× review toggle stretches the swap (no-op at --motion-slow: 1) */
+  --icon-swap-dur: calc(300ms * var(--motion-slow, 1)); /* spans the card timeline */
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 24px;
   isolation: isolate;
+}
+
+/* One fixed spot per avatar, 12px apart; the leader sits on top */
+.jira-ticket-spot {
+  position: absolute;
+  top: 0;
+  display: flex;
+}
+
+/* transitions.dev — Icon swap (09-icon-swap.md), verbatim */
+.t-icon-swap {
+  position: relative;
+  display: inline-grid;
+}
+.t-icon-swap .t-icon {
+  grid-area: 1 / 1;
+  transition:
+    opacity   var(--icon-swap-dur) var(--icon-swap-ease),
+    filter    var(--icon-swap-dur) var(--icon-swap-ease),
+    transform var(--icon-swap-dur) var(--icon-swap-ease);
+  will-change: opacity, filter, transform;
+}
+.t-icon-swap[data-state="a"] .t-icon[data-icon="a"],
+.t-icon-swap[data-state="b"] .t-icon[data-icon="b"] {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+}
+.t-icon-swap[data-state="a"] .t-icon[data-icon="b"],
+.t-icon-swap[data-state="b"] .t-icon[data-icon="a"] {
+  opacity: 0;
+  filter: blur(var(--icon-swap-blur));
+  transform: scale(var(--icon-swap-start-scale));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-icon-swap .t-icon { transition: none !important; }
 }
 
 .jira-ticket-memoji {
   position: relative;
-  z-index: 2;
+  display: block;
   flex-shrink: 0;
   width: 24px;
   height: 24px;
@@ -161,13 +414,18 @@
   background: var(--color-yellow);
 }
 
-.jira-ticket-memoji + .jira-ticket-memoji {
-  margin-left: -12px;
+.jira-ticket-memoji[data-tone='green'] {
+  background: var(--color-green);
 }
 
-.jira-ticket-memoji-faded {
-  z-index: 1;
-  opacity: 0.5;
+.jira-ticket-memoji[data-tone='blue'] {
+  background: var(--color-blue);
+}
+
+.jira-ticket-memoji-shade {
+  position: absolute;
+  inset: 0;
+  background: var(--color-gray-950);
 }
 
 .jira-ticket-memoji-icon {
