@@ -13,7 +13,7 @@
   --breakpoint-3xl: 92.5rem;
 
   /* Font families */
-  --font-primary: 'Geist', system-ui, sans-serif; /* website: 'Aeonik' (licensed) */
+  --font-primary: 'Aeonik', system-ui, sans-serif;
   --font-geist: 'Geist Mono', ui-monospace, monospace;
 
   /* Font weights */
@@ -157,8 +157,11 @@
   --gradient-round-border-red: linear-gradient(360deg, rgb(251 44 54 / 0.6) 0%, rgb(251 44 54 / 0.4) 100%);
   --gradient-round-border-green: linear-gradient(360deg, rgb(165 255 1 / 0.3) 0%, rgb(165 255 1 / 0.1) 100%);
 
-  /* Font features — `.font-zero` on the website */
-  --font-features-zero: normal; /* website: 'zero' 1, 'ss02' 1 (Aeonik alternates) */
+  /* Font features — Aeonik stylistic sets used by every Figma text style
+     (ss02 / ss09 / ss10). `.font-zero` adds the slashed zero on top;
+     font-feature-settings doesn't merge, so it repeats the base sets. */
+  --font-features-base: 'ss02' 1, 'ss09' 1, 'ss10' 1;
+  --font-features-zero: 'ss02' 1, 'ss09' 1, 'ss10' 1, 'zero' 1;
 }
 
 @keyframes spectoArrowAnim {

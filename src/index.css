@@ -20,6 +20,7 @@ body {
   background: var(--color-almost-black);
   color: var(--color-gray-400);
   font-family: var(--font-primary);
+  font-feature-settings: var(--font-features-base);
   font-size: var(--text-base);
   line-height: var(--leading-normal);
   -webkit-font-smoothing: antialiased;
