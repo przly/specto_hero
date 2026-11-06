@@ -36,9 +36,9 @@
   object-fit: contain;
 }
 
-/* Canvas has no intrinsic size until the first frame decodes — reserve the
-   square so the title/text don't jump down when it arrives. */
-.service-card-sequence {
+/* Reserve the square before the video's metadata loads so the title/text
+   don't jump down when it arrives. */
+.service-card-video {
   aspect-ratio: 1 / 1;
 }
 

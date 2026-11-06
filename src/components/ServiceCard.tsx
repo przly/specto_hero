@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
-import FrameSequence from './FrameSequence'
+import HoverVideo from './HoverVideo'
 import type { ServiceItem } from './serviceItems'
 import './ServiceCard.css'
 
 /* One item of specto-website `modules/HomeServices`: divider line, graphic,
    title (Title h4 / medium / text-3xl) and text.
 
-   Graphic is either a still `image` or a `frames` sequence. A sequence plays
-   forward while the card is hovered and backward when the pointer leaves. */
+   The graphic is a short `video` that plays forward while the card is
+   hovered and backward when the pointer leaves. */
 
 // Touch has no real hover: a tap fires enter and leave back to back,
 // which would play and instantly rewind. Only mouse/pen drive it.
 const isHoverPointer = (event: PointerEvent) => event.pointerType !== 'touch'
 
 const LINE_EASING = 'cubic-bezier(0.65, 0, 0.35, 1)' // ease-in-out
-const STILL_LINE_DURATION = 600 // ms, cards without a sequence
+const FALLBACK_LINE_DURATION = 600 // ms, until the video's length is known
 
 // The line is a segment [start, end] of the card width (0..1), drawn as
 // translateX(start) scaleX(end - start) with a left transform-origin.
@@ -35,15 +35,20 @@ const sideOf = (event: PointerEvent<HTMLElement>) => {
   return event.clientX < rect.left + rect.width / 2 ? 'left' : 'right'
 }
 
-export default function ServiceCard({ image, frames, fps, title, text }: ServiceItem) {
+type ServiceCardProps = ServiceItem & {
+  /** Playback speed, 1 = the video's own frame rate. */
+  rate?: number
+}
+
+export default function ServiceCard({ video, rate = 1, title, text }: ServiceCardProps) {
   const [hovered, setHovered] = useState(false)
-  const hasSequence = Boolean(frames?.length)
+  const [videoDuration, setVideoDuration] = useState<number | null>(null)
   const fillRef = useRef<HTMLDivElement>(null)
   const animRef = useRef<Animation | null>(null)
 
-  // The hover line runs for exactly as long as the sequence takes to play
-  // through (same fps default as FrameSequence), so both finish together.
-  const lineDuration = hasSequence ? ((frames!.length - 1) / (fps ?? 60)) * 1000 : STILL_LINE_DURATION
+  // The hover line runs for exactly as long as the video takes to play
+  // through at the current rate, so both finish together.
+  const lineDuration = videoDuration ? (videoDuration / rate) * 1000 : FALLBACK_LINE_DURATION
 
   useEffect(() => () => animRef.current?.cancel(), [])
 
@@ -57,7 +62,7 @@ export default function ServiceCard({ image, frames, fps, title, text }: Service
     if (hiddenStart && from[1] - from[0] < 0.001) from = hiddenStart
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    // Scale time by the distance left to travel, like the sequence reversing
+    // Scale time by the distance left to travel, like the video reversing
     // from its current frame.
     const distance = Math.max(Math.abs(target[0] - from[0]), Math.abs(target[1] - from[1]))
     el.style.transform = toTransform(target)
@@ -87,19 +92,14 @@ export default function ServiceCard({ image, frames, fps, title, text }: Service
         <div className="service-card-line-fill" ref={fillRef} />
       </div>
       <div className="service-card-image-wrap">
-        {hasSequence ? (
-          <FrameSequence
-            className="service-card-image service-card-sequence"
-            frames={frames!}
-            fps={fps}
-            playing={hovered}
-            label={title}
-          />
-        ) : (
-          image && (
-            <img className="service-card-image" src={image} alt={title} width={200} height={200} loading="lazy" />
-          )
-        )}
+        <HoverVideo
+          className="service-card-image service-card-video"
+          src={video}
+          rate={rate}
+          playing={hovered}
+          label={title}
+          onDuration={setVideoDuration}
+        />
       </div>
       <h3 className="heading heading-4 font-zero service-card-title">{title}</h3>
       <p className="service-card-text">{text}</p>

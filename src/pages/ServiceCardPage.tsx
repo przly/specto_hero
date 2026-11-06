@@ -1,134 +1,63 @@
 import { useEffect, useRef, useState, type DragEvent } from 'react'
 import ServiceCard from '../components/ServiceCard'
 import { SERVICE_ITEMS } from '../components/serviceItems'
-import { cubesFrames, curveFrames, fullFrames } from '../assets/sequences'
-import {
-  dataTransferToFiles,
-  filesToSequence,
-  isVideoFile,
-  revokeSequence,
-  videoToSequence,
-  type LoadedSequence,
-} from '../components/sequenceUpload'
 import './ServiceCardPage.css'
 
-const BASE_FPS = 60
-const VIDEO_FPS = 60 // dropped videos are cut into frames at this rate
 const SPEEDS = [1, 2, 4] as const
 type Speed = (typeof SPEEDS)[number]
 
-/* Default graphic per card. `null` → the card's still image from
-   SERVICE_ITEMS until a folder is loaded into it. */
-const DEFAULT_SEQUENCES: (LoadedSequence | null)[] = [
-  { name: 'Cubes', frames: cubesFrames },
-  { name: 'Curve', frames: curveFrames },
-  { name: 'Full', frames: fullFrames },
-  null,
-]
+const VIDEO_EXT = /\.(mp4|m4v|mov|webm|ogv)$/i
+const isVideoFile = (file: File) => file.type.startsWith('video/') || VIDEO_EXT.test(file.name)
+
+/* A video loaded into a card. Nothing is uploaded anywhere: it stays in the
+   browser as an object URL. `null` → the card's default from SERVICE_ITEMS. */
+type LoadedVideo = { name: string; src: string }
+
+const revoke = (video: LoadedVideo | null) => video && URL.revokeObjectURL(video.src)
 
 const hasFiles = (event: DragEvent) => Array.from(event.dataTransfer.types).includes('Files')
 
 export default function ServiceCardPage() {
-  const [sequences, setSequences] = useState(DEFAULT_SEQUENCES)
+  const [videos, setVideos] = useState<(LoadedVideo | null)[]>(() => SERVICE_ITEMS.map(() => null))
   const [errors, setErrors] = useState<(string | null)[]>(() => SERVICE_ITEMS.map(() => null))
   const [dropTarget, setDropTarget] = useState<number | null>(null)
-  // Video decode progress per card (0..1), null when idle.
-  const [decoding, setDecoding] = useState<(number | null)[]>(() => SERVICE_ITEMS.map(() => null))
   const [speed, setSpeed] = useState<Speed>(1)
-  const fps = BASE_FPS * speed
   const inputRef = useRef<HTMLInputElement>(null)
-  const videoInputRef = useRef<HTMLInputElement>(null)
-  const decodeControllers = useRef<(AbortController | null)[]>(SERVICE_ITEMS.map(() => null))
   const pickTarget = useRef(0)
-  const sequencesRef = useRef(sequences)
+  const videosRef = useRef(videos)
 
   useEffect(() => {
-    sequencesRef.current = sequences
-  }, [sequences])
+    videosRef.current = videos
+  }, [videos])
 
-  // `webkitdirectory` isn't in React's input typings, so set it directly.
-  useEffect(() => {
-    inputRef.current?.setAttribute('webkitdirectory', '')
-  }, [])
+  // Free any loaded videos when leaving the page.
+  useEffect(() => () => videosRef.current.forEach(revoke), [])
 
-  // Free any uploaded frames and stop decodes when leaving the page.
-  useEffect(
-    () => () => {
-      decodeControllers.current.forEach((c) => c?.abort())
-      sequencesRef.current.forEach((s, i) => s !== DEFAULT_SEQUENCES[i] && revokeSequence(s))
-    },
-    [],
-  )
-
-  const setSlot = (index: number, next: LoadedSequence | null) => {
-    setSequences((prev) => {
-      const old = prev[index]
-      if (old !== DEFAULT_SEQUENCES[index]) revokeSequence(old)
-      return prev.map((s, i) => (i === index ? next : s))
+  const setSlot = (index: number, next: LoadedVideo | null) => {
+    setVideos((prev) => {
+      revoke(prev[index])
+      return prev.map((v, i) => (i === index ? next : v))
     })
   }
 
   const setError = (index: number, message: string | null) =>
     setErrors((prev) => prev.map((e, i) => (i === index ? message : e)))
 
-  const setDecodeProgress = (index: number, value: number | null) =>
-    setDecoding((prev) => prev.map((d, i) => (i === index ? value : d)))
-
-  // Stop a video still decoding into this card (a newer load or reset wins).
-  const cancelDecode = (index: number) => {
-    decodeControllers.current[index]?.abort()
-    decodeControllers.current[index] = null
-    setDecodeProgress(index, null)
-  }
-
-  const loadVideo = async (index: number, file: File) => {
-    cancelDecode(index)
-    const controller = new AbortController()
-    decodeControllers.current[index] = controller
-    setError(index, null)
-    setDecodeProgress(index, 0)
-
-    try {
-      const next = await videoToSequence(file, {
-        fps: VIDEO_FPS,
-        signal: controller.signal,
-        onProgress: (done, total) => setDecodeProgress(index, done / total),
-      })
-      if (controller.signal.aborted) return revokeSequence(next)
-      setSlot(index, next)
-    } catch (error) {
-      if (controller.signal.aborted) return
-      setError(index, error instanceof Error ? error.message : "Couldn't read that video.")
-    } finally {
-      if (decodeControllers.current[index] === controller) {
-        decodeControllers.current[index] = null
-        setDecodeProgress(index, null)
-      }
-    }
-  }
-
-  const load = (index: number, files: File[], name?: string) => {
-    const video = files.find(isVideoFile)
-    if (video) {
-      loadVideo(index, video)
-      return
-    }
-    cancelDecode(index)
-    const next = filesToSequence(files, name)
-    if (!next) {
-      setError(index, 'No images or video in that drop.')
+  const load = (index: number, files: File[]) => {
+    const file = files.find(isVideoFile)
+    if (!file) {
+      setError(index, 'No video in that drop.')
       return
     }
     setError(index, null)
-    setSlot(index, name ? { ...next, name } : next)
+    setSlot(index, { name: file.name.replace(/\.[^.]+$/, ''), src: URL.createObjectURL(file) })
   }
 
-  const onCardDrop = async (index: number, event: DragEvent) => {
+  const onCardDrop = (index: number, event: DragEvent) => {
     event.preventDefault()
     event.stopPropagation()
     setDropTarget(null)
-    const { files, name } = await dataTransferToFiles(event.dataTransfer)
-    load(index, files, name)
+    load(index, Array.from(event.dataTransfer.files))
   }
 
   return (
@@ -144,9 +73,7 @@ export default function ServiceCardPage() {
       <div className="service-card-page-container">
         <div className="service-card-page-grid">
           {SERVICE_ITEMS.map((item, index) => {
-            const sequence = sequences[index]
-            const isDefault = sequence === DEFAULT_SEQUENCES[index]
-            const progress = decoding[index]
+            const loaded = videos[index]
 
             return (
               <div className="service-card-page-column" key={item.title}>
@@ -170,12 +97,7 @@ export default function ServiceCardPage() {
                   }}
                   onDrop={(e) => onCardDrop(index, e)}
                 >
-                  <ServiceCard
-                    {...item}
-                    image={sequence ? undefined : item.image}
-                    frames={sequence?.frames}
-                    fps={fps}
-                  />
+                  <ServiceCard {...item} video={loaded?.src ?? item.video} rate={speed} />
                   {dropTarget === index && (
                     <div className="service-card-drop-overlay" aria-hidden="true">
                       Drop to play on {item.title}
@@ -183,27 +105,19 @@ export default function ServiceCardPage() {
                   )}
                 </div>
 
-                <div className="sequence-slot">
-                  <div className="sequence-slot-info">
-                    <span className="sequence-slot-name">{sequence?.name ?? 'Still image'}</span>
-                    <span className="sequence-slot-meta">
-                      {progress !== null
-                        ? `Decoding video… ${Math.round(progress * 100)}%`
-                        : errors[index] ??
-                        (sequence
-                          ? `${sequence.frames.length} frames · ${(sequence.frames.length / fps).toFixed(2)}s`
-                          : 'No sequence')}
-                    </span>
+                <div className="video-slot">
+                  <div className="video-slot-info">
+                    <span className="video-slot-name">{loaded?.name ?? item.title}</span>
+                    <span className="video-slot-meta">{errors[index] ?? (loaded ? 'Your video' : 'Default video')}</span>
                   </div>
-                  <div className="sequence-slot-actions">
-                    {(!isDefault || progress !== null) && (
+                  <div className="video-slot-actions">
+                    {loaded && (
                       <button
                         type="button"
-                        className="sequence-slot-button"
+                        className="video-slot-button"
                         onClick={() => {
-                          cancelDecode(index)
                           setError(index, null)
-                          setSlot(index, DEFAULT_SEQUENCES[index])
+                          setSlot(index, null)
                         }}
                       >
                         Reset
@@ -211,22 +125,11 @@ export default function ServiceCardPage() {
                     )}
                     <button
                       type="button"
-                      className="sequence-slot-button sequence-slot-button-primary"
-                      aria-label={`Choose a frame folder for ${item.title}`}
-                      onClick={() => {
-                        pickTarget.current = index
-                        inputRef.current?.click()
-                      }}
-                    >
-                      Folder
-                    </button>
-                    <button
-                      type="button"
-                      className="sequence-slot-button sequence-slot-button-primary"
+                      className="video-slot-button video-slot-button-primary"
                       aria-label={`Choose a video for ${item.title}`}
                       onClick={() => {
                         pickTarget.current = index
-                        videoInputRef.current?.click()
+                        inputRef.current?.click()
                       }}
                     >
                       Video
@@ -240,8 +143,7 @@ export default function ServiceCardPage() {
 
         <div className="service-card-page-toolbar">
           <p className="service-card-page-hint">
-            Hover a card to play its sequence. Drop a folder of frames or a video (cut into frames at 60fps) onto a
-            card, or use its buttons, to swap it.
+            Hover a card to play its video. Drop a video onto a card, or use its Video button, to swap it.
           </p>
           <div className="speed-control" role="group" aria-label="Playback speed">
             {SPEEDS.map((value) => (
@@ -261,23 +163,12 @@ export default function ServiceCardPage() {
 
       <input
         ref={inputRef}
-        className="sequence-slot-input"
-        type="file"
-        multiple
-        accept="image/*"
-        onChange={(e) => {
-          load(pickTarget.current, Array.from(e.target.files ?? []))
-          e.target.value = '' // allow re-picking the same folder
-        }}
-      />
-      <input
-        ref={videoInputRef}
-        className="sequence-slot-input"
+        className="video-slot-input"
         type="file"
         accept="video/*"
         onChange={(e) => {
           load(pickTarget.current, Array.from(e.target.files ?? []))
-          e.target.value = ''
+          e.target.value = '' // allow re-picking the same file
         }}
       />
     </main>
