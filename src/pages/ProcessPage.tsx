@@ -1,9 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type Ref } from 'react'
+import { useReducedMotion } from 'motion/react'
+import { RevealText } from '../RevealText'
+import { TICKET_SWAP_MS } from '../components/jiraTicketTiming'
 import JiraTicket, { type AvatarTone, type TeamAvatar, type TicketState } from '../components/JiraTicket'
 import sectionExplore from '../assets/process/section-explore.png'
 import sectionBuild from '../assets/process/section-build.png'
 import sectionEvolve from '../assets/process/section-evolve.png'
-import timelineDot from '../assets/process/timeline-dot.svg'
 import usersThree from '../assets/process/users-three.svg'
 import binoculars from '../assets/process/binoculars.svg'
 import brain from '../assets/process/brain.svg'
@@ -165,69 +167,246 @@ const SECTIONS: Section[] = [
   },
 ]
 
-/* Dashed timeline running from the top of the steps down to the milestone
-   button. Its length depends on how the copy wraps, so it's measured. */
-function Timeline({ section }: { section: Section }) {
-  const rootRef = useRef<HTMLDivElement>(null)
-  const markerRef = useRef<HTMLSpanElement>(null)
-  const [lineHeight, setLineHeight] = useState(0)
+/* Each section's timeline plays as one timed sequence: once the section's
+   image lines up with the Jira ticket, the ticket swaps state, and when that
+   swap is done (TICKET_SWAP_MS) the line draws down over LINE_DRAW_MS. Each
+   step reveals as the line reaches its dot, the milestone when it arrives
+   at its button. Scrolling back above the section retracts the line
+   (LINE_RETRACT_MS) and the steps fade out as it passes them. Durations are
+   for the full length; an interrupted draw/retract only covers what's left. */
+const LINE_DRAW_MS = 1400
+const LINE_RETRACT_MS = 500
+const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+/** Soft fade at the drawing end of the line (px) while it draws. Over the
+    last TIP_FADE px before the milestone button it shrinks to 0, so the
+    finished line runs solid into the button. */
+const TIP_FADE = 32
+/** Matches the 200ms quiet fade in the texts-reveal exit (.is-hiding). */
+const REVEAL_HIDE_MS = 200
 
+/* Paragraphs reveal line by line (RevealText, from Specto_TextReveal): each
+   wrapped line slides up out of its own mask, no blur. They start where the
+   blurred copy used to: one stagger after the pill plus the text gap
+   (60ms + 80ms, mirroring --stagger-stagger × --reveal-tempo and
+   --reveal-text-gap in ProcessPage.css). Duration and line stagger are the
+   Specto_TextReveal defaults. On hide, the parent's 200ms fade covers them,
+   then the lines drop back below their masks. */
+const PARAGRAPH_DELAY_S = 0.06 + 0.08
+const PARAGRAPH_DURATION_S = 1.3
+const PARAGRAPH_LINE_STAGGER_S = 0.06
+
+/** `after`: extra seconds, e.g. one stagger so the milestone body follows its title. */
+function paragraphTiming(slowMo: number, after = 0) {
+  return {
+    delay: (PARAGRAPH_DELAY_S + after) * slowMo,
+    duration: PARAGRAPH_DURATION_S * slowMo,
+    stagger: PARAGRAPH_LINE_STAGGER_S * slowMo,
+    hideDelay: (REVEAL_HIDE_MS / 1000) * slowMo,
+  }
+}
+
+/** Texts-reveal state for one .t-stagger: shown, then a short .is-hiding
+    fade when it's taken away, then back to the hidden resting state. */
+function useRevealClass(shown: boolean, slowMo: number) {
+  const [hiding, setHiding] = useState(false)
+  const [prevShown, setPrevShown] = useState(shown)
+  if (shown !== prevShown) {
+    setPrevShown(shown)
+    setHiding(!shown)
+  }
+  useEffect(() => {
+    if (!hiding) return
+    const t = setTimeout(() => setHiding(false), REVEAL_HIDE_MS * slowMo)
+    return () => clearTimeout(t)
+  }, [hiding, slowMo])
+  return shown ? ' is-shown' : hiding ? ' is-hiding' : ''
+}
+
+function TimelineStep({ step, shown, slowMo }: { step: Step; shown: boolean; slowMo: number }) {
+  const reveal = useRevealClass(shown, slowMo)
+  return (
+    <li className={`process-step t-stagger${reveal}`}>
+      <div className="process-step-head">
+        <span className="process-step-dot t-badge-dot" aria-hidden="true" />
+        <span className="process-pill t-stagger-line t-stagger-line--2">
+          <img src={step.icon} alt="" width={14} height={14} />
+          <span className="process-pill-label">{step.label}</span>
+        </span>
+      </div>
+      <div className="process-step-body process-reveal-text">
+        <RevealText
+          text={step.body}
+          className="process-copy"
+          isTriggered={shown}
+          {...paragraphTiming(slowMo)}
+        />
+      </div>
+    </li>
+  )
+}
+
+function TimelineMilestone({
+  milestone,
+  shown,
+  slowMo,
+  markerRef,
+}: {
+  milestone: Section['milestone']
+  shown: boolean
+  slowMo: number
+  markerRef: Ref<HTMLSpanElement>
+}) {
+  const reveal = useRevealClass(shown, slowMo)
+  return (
+    <div className={`process-milestone t-stagger${reveal}`}>
+      <span className="process-milestone-button t-badge-dot" ref={markerRef} aria-hidden="true">
+        <img src={milestone.icon} alt="" width={14} height={14} />
+      </span>
+      {milestone.title && (
+        <div className="process-milestone-text">
+          <h4
+            className="process-milestone-title t-stagger-line t-stagger-line--3"
+            data-bright={milestone.bright ? true : undefined}
+          >
+            {milestone.title}
+          </h4>
+          <div className="process-step-body process-reveal-text">
+            <RevealText
+              text={milestone.body ?? ''}
+              className="process-copy"
+              isTriggered={shown}
+              {...paragraphTiming(slowMo, 0.06)}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* Dashed timeline running from the top of the steps down to the milestone
+   button. Its length depends on how the copy wraps, so it's measured; how
+   much of it is drawn follows the scroll. */
+function Timeline({
+  section,
+  slowMo,
+  play,
+  playDelayMs,
+}: {
+  section: Section
+  slowMo: number
+  /** Draw the line and reveal the steps (false retracts them). */
+  play: boolean
+  /** Wait before drawing, e.g. for the ticket swap to finish. */
+  playDelayMs: number
+}) {
+  const rootRef = useRef<HTMLDivElement>(null)
+  const lineRef = useRef<HTMLSpanElement>(null)
+  const markerRef = useRef<HTMLSpanElement>(null)
+  const reduceMotion = useReducedMotion() ?? false
+  const [lineHeight, setLineHeight] = useState(0)
+  // How many items (steps, then the milestone) the line has reached.
+  const [reached, setReached] = useState(0)
+  // How much of the line is drawn, 0–1 (a fraction, so a resize keeps it).
+  const progress = useRef(0)
+  // Line length, and the distance from its top to each step dot's centre and
+  // finally to the milestone button.
+  const geometry = useRef({ height: 0, stops: [] as number[] })
+
+  // Writes the drawn length to the line and reveals the items it has reached.
+  const paint = useCallback(() => {
+    const line = lineRef.current
+    if (!line) return
+    const { height, stops } = geometry.current
+    const draw = progress.current * height
+    line.style.setProperty('--draw', `${draw}px`)
+    line.style.setProperty('--tip', `${Math.min(TIP_FADE, height - draw)}px`)
+    // The milestone counts once the line has fully arrived at its button.
+    setReached(stops.filter((y, i) => (i === stops.length - 1 ? draw >= y - 1 : draw >= y)).length)
+  }, [])
+
+  // Measure (layout offsets, so the reveals' translateY never skews them).
   useLayoutEffect(() => {
     const root = rootRef.current
     const marker = markerRef.current
     if (!root || !marker) return
-    const measure = () =>
-      setLineHeight(marker.getBoundingClientRect().top - root.getBoundingClientRect().top)
+    const offsetIn = (el: HTMLElement) => {
+      let y = 0
+      for (let n: HTMLElement | null = el; n && n !== root; n = n.offsetParent as HTMLElement | null) y += n.offsetTop
+      return y
+    }
+    const measure = () => {
+      const dots = Array.from(root.querySelectorAll<HTMLElement>('.process-step-dot'))
+      const height = offsetIn(marker)
+      geometry.current = { height, stops: [...dots.map((d) => offsetIn(d) + d.offsetHeight / 2), height] }
+      setLineHeight(height)
+      paint()
+    }
     measure()
     const ro = new ResizeObserver(measure)
     ro.observe(root)
     return () => ro.disconnect()
-  }, [])
+  }, [paint])
+
+  // Play / retract.
+  useEffect(() => {
+    const target = play ? 1 : 0
+    const from = progress.current
+    if (from === target) return
+    if (reduceMotion) {
+      progress.current = target
+      paint()
+      return
+    }
+    const duration = (play ? LINE_DRAW_MS : LINE_RETRACT_MS) * slowMo * Math.abs(target - from)
+    let frame = 0
+    let start = 0
+    const tick = (now: number) => {
+      if (!start) start = now
+      const t = Math.min((now - start) / duration, 1)
+      progress.current = from + (target - from) * easeInOutCubic(t)
+      paint()
+      if (t < 1) frame = requestAnimationFrame(tick)
+    }
+    const timer = setTimeout(() => {
+      frame = requestAnimationFrame(tick)
+    }, play ? playDelayMs : 0)
+    return () => {
+      clearTimeout(timer)
+      cancelAnimationFrame(frame)
+    }
+  }, [play, playDelayMs, slowMo, reduceMotion, paint])
 
   const { milestone } = section
   return (
     <div className="process-timeline" ref={rootRef}>
       <span
         className="process-timeline-line"
+        ref={lineRef}
         data-fade-out={section.lineFadesOut ? true : undefined}
         style={{ height: lineHeight }}
         aria-hidden="true"
       />
       <ol className="process-steps">
-        {section.steps.map((step) => (
-          <li key={step.label} className="process-step">
-            <div className="process-step-head">
-              <span className="process-step-dot" aria-hidden="true">
-                <img src={timelineDot} alt="" width={26} height={26} />
-              </span>
-              <span className="process-pill">
-                <img src={step.icon} alt="" width={14} height={14} />
-                <span className="process-pill-label">{step.label}</span>
-              </span>
-            </div>
-            <p className="process-copy process-step-body">{step.body}</p>
-          </li>
+        {section.steps.map((step, i) => (
+          <TimelineStep key={step.label} step={step} shown={reached > i} slowMo={slowMo} />
         ))}
       </ol>
-      <div className="process-milestone">
-        <span className="process-milestone-button" ref={markerRef} aria-hidden="true">
-          <img src={milestone.icon} alt="" width={14} height={14} />
-        </span>
-        {milestone.title && (
-          <div className="process-milestone-text">
-            <h4 className="process-milestone-title" data-bright={milestone.bright ? true : undefined}>
-              {milestone.title}
-            </h4>
-            <p className="process-copy process-step-body">{milestone.body}</p>
-          </div>
-        )}
-      </div>
+      <TimelineMilestone
+        milestone={milestone}
+        shown={reached > section.steps.length}
+        slowMo={slowMo}
+        markerRef={markerRef}
+      />
     </div>
   )
 }
 
 export default function ProcessPage() {
-  const [active, setActive] = useState(0)
+  // How many sections' images have lined up with the ticket. The ticket
+  // shows the last of them; each of them has its timeline played.
+  const [reachedSections, setReachedSections] = useState(0)
+  const active = Math.max(reachedSections - 1, 0)
   const [slow, setSlow] = useState(false)
   const slowMo = slow ? 10 : 1
   const artRefs = useRef<(HTMLElement | null)[]>([])
@@ -245,11 +424,11 @@ export default function ProcessPage() {
       if (!card) return
       const line = centre(card.getBoundingClientRect())
       const arts = artRefs.current.map((el) => (el ? centre(el.getBoundingClientRect()) : Infinity))
-      let next = 0
+      let count = 0
       arts.forEach((c, i) => {
-        if (c <= line) next = i
+        if (c <= line) count = i + 1
       })
-      setActive(next)
+      setReachedSections(count)
     }
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update)
@@ -319,7 +498,14 @@ export default function ProcessPage() {
                 </h3>
                 <p className="process-copy">{section.intro}</p>
               </header>
-              <Timeline section={section} />
+              <Timeline
+                section={section}
+                slowMo={slowMo}
+                play={reachedSections > i}
+                // The first section's state is already on the ticket (no swap
+                // to wait for); later ones wait for the ticket to finish.
+                playDelayMs={i === 0 ? 0 : TICKET_SWAP_MS * slowMo}
+              />
             </article>
           ))}
         </div>

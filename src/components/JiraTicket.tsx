@@ -7,6 +7,7 @@ import tagProductIcon from '../assets/jira-ticket/tag-product.svg'
 import tagStrategyIcon from '../assets/jira-ticket/tag-strategy.svg'
 import userIcon from '../assets/jira-ticket/memoji-user.svg'
 import warningIcon from '../assets/jira-ticket/warning-circle.svg'
+import { CARD_TEMPO, SWAP_PHASE_MS } from './jiraTicketTiming'
 import './JiraTicket.css'
 
 /* Figma: Specto Website › "Jira ticket states" (6611:7474).
@@ -62,8 +63,8 @@ const EASE_IN_OUT_CUBIC = [0.65, 0, 0.35, 1] as const
    One phase = a 150ms text swap + one 40ms stagger step. Avatars crossfade
    across both phases (300ms per spot, 40ms apart: 0–300 / 40–340 / 80–380),
    so the three handoffs sit at 150 / 190 / 230ms, centred on the phase
-   change. The CSS reads the same value as --swap-phase on .jira-ticket. */
-const SWAP_PHASE_MS = 190
+   change. The CSS reads the same value as --swap-phase on .jira-ticket.
+   SWAP_PHASE_MS and CARD_TEMPO live in jiraTicketTiming.ts. */
 const TEXT_SWAP_S = 0.15
 
 type SwapCustom = {
@@ -319,8 +320,8 @@ function Memoji({ tone, strength }: { tone: AvatarTone; strength: number }) {
 /* Overall tempo of the card's motion: 1.25 = everything 25% slower than the
    base timings written above and in JiraTicket.css. Applied by re-setting
    --motion-slow on the card, so every CSS duration, delay and stagger (and
-   the JS timers below) scales together and stays in sync. */
-const CARD_TEMPO = 1.25
+   the JS timers below) scales together and stays in sync. CARD_TEMPO is in
+   jiraTicketTiming.ts so pages can wait for the swap to finish. */
 
 export default function JiraTicket({ ticketKey, title, priority, state, stateKey, slowMo: pageSlowMo = 1 }: JiraTicketProps) {
   const slowMo = pageSlowMo * CARD_TEMPO

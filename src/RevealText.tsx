@@ -10,10 +10,16 @@ type LineCustom = {
   duration: number;
   stagger: number;
   delay: number;
+  hideDelay?: number;
 };
 
 const lineVariants: Variants = {
-  hidden: { y: '200%' },
+  // With `hideDelay` (the reveal can be taken back), the line snaps below its
+  // mask after that delay instead of sliding, so a parent fade can cover it.
+  hidden: ({ hideDelay }: LineCustom) =>
+    hideDelay === undefined
+      ? { y: '200%' }
+      : { y: '200%', transition: { duration: 0, delay: hideDelay } },
   visible: ({ index, duration, stagger, delay }: LineCustom) => ({
     y: '-7%',
     transition: {
@@ -168,6 +174,12 @@ export type RevealTextProps = {
   /** Extra seconds before the first line/word starts. Default: 0. */
   delay?: number;
   /**
+   * For reveals driven by `isTriggered` that can turn false again: seconds
+   * to wait before snapping the lines back below their masks (e.g. while a
+   * parent fades the block out). Omit for the original behaviour.
+   */
+  hideDelay?: number;
+  /**
    * Starting stagger index — lets two separate RevealText blocks (e.g. a
    * heading followed by a paragraph) read as one continuous sequence
    * instead of each restarting its stagger at 0. Pass the previous block's
@@ -199,6 +211,7 @@ export function RevealText({
   duration = 1.3,
   stagger = 0.06,
   delay = 0,
+  hideDelay,
   startIndex = 0,
   triggerMargin = 0,
   onCountChange,
@@ -246,7 +259,7 @@ export function RevealText({
                 <span className="hero-word-wrap hero-line">
                   <motion.span
                     className="hero-line hero-word"
-                    custom={{ index: startIndex + index, duration, stagger, delay }}
+                    custom={{ index: startIndex + index, duration, stagger, delay, hideDelay }}
                     variants={variants}
                   >
                     {word}
@@ -268,7 +281,7 @@ export function RevealText({
               <span className="hero-line-mask hero-line" key={`${line}-${index}`}>
                 <motion.span
                   className="hero-line"
-                  custom={{ index: startIndex + index, duration, stagger, delay }}
+                  custom={{ index: startIndex + index, duration, stagger, delay, hideDelay }}
                   variants={variants}
                 >
                   {line}
