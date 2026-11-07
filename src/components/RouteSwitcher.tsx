@@ -11,6 +11,7 @@ export const ROUTES = [
   { path: '/service-card', label: 'Service card' },
   { path: '/jira-ticket', label: 'Jira ticket' },
   { path: '/process', label: 'Process' },
+  { path: '/buttons', label: 'Buttons' },
 ] as const
 
 export default function RouteSwitcher() {

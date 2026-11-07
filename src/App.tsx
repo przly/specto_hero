@@ -8,6 +8,7 @@ import HomeServices from './pages/HomeServices'
 import ServiceCardPage from './pages/ServiceCardPage'
 import JiraTicketPage from './pages/JiraTicketPage'
 import ProcessPage from './pages/ProcessPage'
+import ButtonsPage from './pages/ButtonsPage'
 import RouteSwitcher from './components/RouteSwitcher'
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Route path="/service-card" element={<ServiceCardPage />} />
         <Route path="/jira-ticket" element={<JiraTicketPage />} />
         <Route path="/process" element={<ProcessPage />} />
+        <Route path="/buttons" element={<ButtonsPage />} />
       </Routes>
       <RouteSwitcher />
     </>

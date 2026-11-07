@@ -1,6 +1,7 @@
 @import './styles/tokens.css';
 @import './styles/fonts.css';
 @import './styles/typography.css';
+@import './styles/transitions.css';
 
 :root {
   color-scheme: dark;
