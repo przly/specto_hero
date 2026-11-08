@@ -63,7 +63,9 @@ export default function HoverVideo({ src, poster, playing, rate = 1, className, 
   useEffect(() => {
     const video = videoRef.current
     if (!video || !poster || hasFrame) return
-    if ('requestVideoFrameCallback' in video) {
+    // Checked on the prototype: `'…' in video` would narrow `video` to never
+    // in the fallback below, since the DOM types always declare the method.
+    if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
       const id = video.requestVideoFrameCallback(() => setHasFrame(true))
       return () => video.cancelVideoFrameCallback(id)
     }
