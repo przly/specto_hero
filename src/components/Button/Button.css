@@ -199,6 +199,11 @@
 	background: linear-gradient(360deg, rgba(165, 255, 1, 0.3) 0%, rgba(165, 255, 1, 0.1) 100%);
 }
 
+/* Same value as src/styles/tokens.css, so the Button carries it wherever it's used. */
+:root {
+	--font-features-base: 'ss02' 1, 'ss09' 1, 'ss10' 1;
+}
+
 /* site.css */
 @layer base {
 	*:focus {

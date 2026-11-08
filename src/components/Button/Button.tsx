@@ -40,7 +40,8 @@ const buttonStyles = tv({
 	// response starts immediately; reduced-motion keeps the gradient/shadow feedback but drops the scale.
 	// The transition list itself (press scale + loading width morph) lives in Button.css under .t-button.t-resize.
 	// No tap highlight: mobile browsers flash a grey rectangle (not the pill) on tap, over the press feedback.
-	base: 't-button t-resize group relative inline-flex cursor-pointer data-disabled:cursor-default flex-col p-[0.5px] [-webkit-tap-highlight-color:transparent] active:scale-[0.97] motion-reduce:active:scale-100 focus:ring-0',
+	// Aeonik stylistic sets (ss02/ss09/ss10, the Figma text styles) set on the button itself, not only inherited from body.
+	base: 't-button t-resize group relative inline-flex cursor-pointer data-disabled:cursor-default flex-col p-[0.5px] [-webkit-tap-highlight-color:transparent] [font-feature-settings:var(--font-features-base)] active:scale-[0.97] motion-reduce:active:scale-100 focus:ring-0',
 	variants: {
 		modifier: {
 			primary: 'bg-btn-primary-main text-gray-950 active:shadow-none data-disabled:bg-gray-400 data-disabled:bg-[linear-gradient(rgb(255_255_255/0.1),rgb(255_255_255/0.1))] data-disabled:text-gray-500',
