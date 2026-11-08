@@ -23,10 +23,10 @@ const Icon = ({ icon, className, svgProps: _svgProps, ...props }: IconParams) =>
 	}
 
 	return (
+		// Decorative: the button's text (or its aria-label when icon-only) names it, so screen readers skip the icon.
 		<div
-			aria-label={icon}
+			aria-hidden
 			className={cn(['icon relative block [&>svg]:size-full', className, icon])}
-			role="img"
 			{...props}
 			dangerouslySetInnerHTML={{ __html: svg.replace(/ width="\d+" height="\d+"/, ' width="100%" height="100%"') }}
 		/>

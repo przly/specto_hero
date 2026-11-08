@@ -10,7 +10,7 @@
 // disabled click: aria-disabled + data-disabled (no native disabled) so the click can trigger a decaying head-shake; spinner 2× faster (0.6s);
 // loading morph: width tweens text ↔ circle (t-resize, width pinned in px) and content ↔ spinner crossfade (t-icon-swap).
 import { Slot } from '@radix-ui/react-slot';
-import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { tv, type VariantProps } from 'tailwind-variants';
 
 import Icon, { type IconProps } from './Icon';
@@ -25,6 +25,8 @@ export interface ButtonProps {
 	rightIcon?: IconProps['icon'];
 	rightIconProps?: Partial<IconProps & { className?: string }>;
 	isLoading?: boolean;
+	/** Screen-reader text added to the button's name while loading (the spinner itself is silent). */
+	loadingLabel?: string;
 	isDisabled?: boolean;
 	asChild?: boolean;
 	isParentHover?: boolean;
@@ -37,7 +39,8 @@ const buttonStyles = tv({
 	// (not `transform`) is what transitions; scale + opacity only (GPU), strong ease-out so the
 	// response starts immediately; reduced-motion keeps the gradient/shadow feedback but drops the scale.
 	// The transition list itself (press scale + loading width morph) lives in Button.css under .t-button.t-resize.
-	base: 't-button t-resize group relative inline-flex cursor-pointer data-disabled:cursor-default flex-col p-[0.5px] active:scale-[0.97] motion-reduce:active:scale-100 focus:ring-0',
+	// No tap highlight: mobile browsers flash a grey rectangle (not the pill) on tap, over the press feedback.
+	base: 't-button t-resize group relative inline-flex cursor-pointer data-disabled:cursor-default flex-col p-[0.5px] [-webkit-tap-highlight-color:transparent] active:scale-[0.97] motion-reduce:active:scale-100 focus:ring-0',
 	variants: {
 		modifier: {
 			primary: 'bg-btn-primary-main text-gray-950 active:shadow-none data-disabled:bg-gray-400 data-disabled:bg-[linear-gradient(rgb(255_255_255/0.1),rgb(255_255_255/0.1))] data-disabled:text-gray-500',
@@ -299,6 +302,7 @@ function Button({
 	rightIconProps,
 	className,
 	isLoading,
+	loadingLabel = 'Loading',
 	isDisabled,
 	disabled,
 	asChild = false,
@@ -338,52 +342,71 @@ function Button({
 				(children.props as { children?: React.ReactNode; title?: React.ReactNode }).title)
 			: children || props.title;
 
-	// Loading morph: CSS can't transition width to/from `auto`, so the button's width is always pinned in px.
-	// At rest it's pinned to the measured natural width; loading pins it to its own height (the circle), and
-	// .t-resize tweens between the two. Reads of offsetWidth return the in-flight value, so reversing mid-way works.
+	// Loading morph: CSS can't transition width to/from `auto`, so the width is pinned in px only while it morphs.
+	// At rest the width is left to CSS (so `w-full`, wrapping containers and rotation all work). Loading pins the current
+	// width, then the height (the circle), and .t-resize tweens between the two; un-loading tweens back to the measured
+	// natural width and releases the pin when the tween ends. offsetWidth returns the in-flight value, so reversing
+	// mid-way works.
 	const rootRef = useRef<HTMLElement>(null);
-	const contentRef = useRef<HTMLDivElement>(null);
 	const loadingRef = useRef(Boolean(isLoading));
 	loadingRef.current = Boolean(isLoading);
 
-	const pinRestWidth = useCallback((animate: boolean) => {
+	// The loading render already swaps in the icon-only padding, so by the time the layout effect runs the auto width has
+	// changed. Track the last rest width (read-only, nothing is pinned) to start the morph from.
+	const restWidthRef = useRef(0);
+	useEffect(() => {
 		const el = rootRef.current;
 		if (!el) return;
-		const from = el.offsetWidth;
-		el.style.width = '';
-		const natural = el.offsetWidth;
-		if (!animate || from === natural) {
-			el.style.width = `${natural}px`;
-			return;
-		}
-		el.style.width = `${from}px`;
-		void el.offsetWidth; // reflow so the auto → px reset doesn't swallow the transition
-		el.style.width = `${natural}px`;
+		const observer = new ResizeObserver(() => {
+			if (!loadingRef.current && !el.style.width) restWidthRef.current = el.offsetWidth;
+		});
+		observer.observe(el);
+		return () => observer.disconnect();
 	}, []);
 
 	const isFirstRun = useRef(true);
 	useLayoutEffect(() => {
 		const el = rootRef.current;
 		if (!el) return;
-		const animate = !isFirstRun.current;
+		const animate = !isFirstRun.current && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 		isFirstRun.current = false;
 		if (isLoading) {
+			// Mid-way back to the text width, the in-flight px width is the start; at rest, the recorded rest width.
+			const from = el.style.width ? el.offsetWidth : restWidthRef.current;
+			if (animate && from) {
+				el.style.width = `${from}px`;
+				void el.offsetWidth; // reflow so the auto → px pin doesn't swallow the transition
+			}
 			el.style.width = `${el.offsetHeight}px`;
-		} else {
-			pinRestWidth(animate);
+			return;
 		}
-	}, [isLoading, size, leftIcon, rightIcon, childNode, pinRestWidth]);
+		const from = el.offsetWidth;
+		el.style.width = '';
+		const natural = el.offsetWidth;
+		if (!animate || from === natural) return; // stays auto
+		el.style.width = `${from}px`;
+		void el.offsetWidth;
+		el.style.width = `${natural}px`;
+	}, [isLoading]);
 
-	// Re-pin when the content's own width changes at rest (e.g. the webfont finishing loading).
+	// Release the px pin once the morph back to the text width finishes (or is cut short), so rest width is auto again.
 	useEffect(() => {
-		const content = contentRef.current;
-		if (!content) return;
-		const observer = new ResizeObserver(() => {
-			if (!loadingRef.current) pinRestWidth(false);
-		});
-		observer.observe(content);
-		return () => observer.disconnect();
-	}, [pinRestWidth]);
+		const el = rootRef.current;
+		if (!el) return;
+		const release = (event: TransitionEvent) => {
+			if (event.target === el && event.propertyName === 'width' && !loadingRef.current) el.style.width = '';
+		};
+		el.addEventListener('transitionend', release);
+		el.addEventListener('transitioncancel', release);
+		return () => {
+			el.removeEventListener('transitionend', release);
+			el.removeEventListener('transitioncancel', release);
+		};
+	}, []);
+
+	if (import.meta.env.DEV && isIconOnly && !props['aria-label'] && !props['aria-labelledby']) {
+		console.warn('Button: icon-only buttons need an aria-label (the icon is hidden from screen readers).');
+	}
 
 	const inner = (
 		<>
@@ -392,14 +415,17 @@ function Button({
 			<div className={cn(innerClassName())} data-state={isLoading ? 'b' : 'a'}>
 				<span className={cn(hoverGradient())} />
 				<span className={activeGradient()} />
-				<div aria-hidden={isLoading || undefined} className={cn(content(), 't-icon')} data-icon="a" ref={contentRef}>
+				{/* The label stays readable while loading (it's only faded out), so the name is "<label> Loading". */}
+				<div className={cn(content(), 't-icon')} data-icon="a">
 					<ButtonIcon {...leftIconProps} className={isIconOnly ? 'ml-0' : '-ml-1'} icon={leftIcon} size={size} />
 					{/* Aeonik sits low in its line box (caps ~0.6px under centre); lift the label 1px, like Figma's correct_for_line_height. */}
 					{childNode ? <span className="-translate-y-px">{childNode}</span> : null}
 					<ButtonIcon {...rightIconProps} className={isIconOnly ? 'mr-0' : '-mr-1'} icon={rightIcon} size={size} />
 				</div>
 				{/* 14px, the same box as the icons, so it fits the 14px text row. */}
+				{isLoading ? <span className="sr-only">{loadingLabel}</span> : null}
 				<Spinner
+					aria-hidden
 					className="grid-stack-item t-icon"
 					data-icon="b"
 					modifier={modifier as unknown as SpinnerProps['modifier']}
