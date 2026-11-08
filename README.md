@@ -103,6 +103,42 @@ is pinned permanently to its resting/end state:
 The autoplaying, looping background video is also explicitly **paused** (rather than
 looping silently) for these users.
 
+## Button component
+
+Source: `src/components/Button/` (`Button.tsx`, `Button.css`, `Icon.tsx`), demo page `/buttons` (`src/pages/ButtonsPage.tsx`).
+Copied from `specto-website` (develop @ `9756594`) and changed as follows:
+
+- **Primary border:** the default border is now two stacked 0.5px gradient strokes, drawn
+  in the 0.5px gap around the fill (`bg-btn-primary-main`, `Button.css`):
+  - top stroke: white `100% → 0%` opacity, top to bottom;
+  - under it: black `0% → 50%` opacity, top to bottom.
+  It replaces the previous single white `90% → 20%` gradient. Hover, pressed and disabled
+  borders are unchanged, and so is the secondary (dark) button.
+- **Width only fixed while loading:** the button's width is no longer set in px at rest,
+  so `w-full`, phone rotation and labels that wrap now work.
+  - Loading start: the width is set to the last resting width, then to the button's
+    height (the spinner circle), and `.t-resize` animates between the two.
+  - The resting width is recorded by a `ResizeObserver`. It only reads the width and
+    never fixes it in place. This is needed because the loading render applies the
+    icon-only padding immediately, so measuring at that point would already give the
+    narrower width.
+  - Loading end: the width animates to the measured natural width, and the px width is
+    cleared on `transitionend` / `transitioncancel`.
+  - With reduced motion it jumps straight to the end size.
+- **Icons are decorative:** `Icon` renders `aria-hidden` instead of `role="img"` plus the
+  icon name, so screen readers don't announce "Plus Button ArrowRight". Icon-only buttons
+  must have an `aria-label`, and dev builds log a warning when it's missing.
+- **Accessible loading state:** the label is no longer `aria-hidden` while loading (it is
+  only faded out). A visually hidden `loadingLabel` (default `"Loading"`, new prop) is
+  added, so the name reads "Button Loading". The spinner is `aria-hidden`, and
+  `aria-busy` stays on the button.
+- **No tap flash on mobile:** `-webkit-tap-highlight-color: transparent` on the button, so
+  iOS and Android don't flash a grey rectangle over the press scale.
+- **`/buttons` phone layout:** below `md` the page switches from the desktop grid to a
+  stacked list (one section per variant, a "label · button" row per state). Each section
+  also has full-width, full-width-loading and long-label-in-a-narrow-column cases for
+  testing on a device.
+
 ## Source map
 
 | File | Contains |
