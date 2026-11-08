@@ -54,10 +54,43 @@ Copied from `specto-website` (develop @ `9756594`) and changed as follows:
   also has full-width, full-width-loading and long-label-in-a-narrow-column cases for
   testing on a device.
 
+## Service card
+
+Source: `src/components/ServiceCard.tsx` / `ServiceCard.css`, `HoverVideo.tsx` / `HoverVideo.css`,
+`serviceItems.ts`; demo page `/service-card` (`src/pages/ServiceCardPage.tsx`).
+
+- **Line colors:** the divider is `--color-gray-800`. The hover line drawn over it is
+  `--color-gray-600` (was a hardcoded `rgb(255 255 255 / 0.15)`).
+- **Line direction:** the line grows from the edge the cursor came in through. Entering
+  through the top or bottom edge always grows it left → right. On leave it shrinks toward
+  the side the cursor exits on.
+- **Video plays forward on hover, backward on leave:**
+  - Safari plays backwards natively (negative `playbackRate`).
+  - Chrome and Firefox step `currentTime` back every frame.
+  - A very quick hover always returns to the first frame. The rewind waits for `play()`
+    to settle and always ends with a seek to 0, because Safari can report `currentTime`
+    0 while still showing a later frame.
+- **Scrolling under a resting cursor:** browsers don't send hover events when content
+  scrolls under the mouse, so the page remembers the last mouse position. On scroll,
+  each card checks whether the element under that point belongs to it, and starts or
+  stops.
+- **Touch screens (`hover: none`):** a card plays while it crosses the middle of the
+  viewport and plays backwards once it scrolls past. This uses an `IntersectionObserver`
+  with `rootMargin: -50% 0px -50% 0px`. Taps don't trigger the card.
+- **Poster frames:** each video has a first-frame `*-poster.webp` (7–12 KB), because iOS
+  draws nothing for a video that hasn't played. It's an `<img>` over the video, not the
+  `poster` attribute. iOS drops that attribute as soon as `play()` is called, so it
+  blinked. The image is removed once the video has drawn a frame of its own
+  (`requestVideoFrameCallback`).
+- **`/service-card` scroll room:** a full viewport of empty space above and below the
+  grid, for testing scroll and touch playback.
+
 ## Source map
 
 | File | Contains |
 | --- | --- |
 | `src/components/Hero.tsx` / `Hero.css` | Hero layout, video grow/zoom, image + hint parallax |
 | `src/components/Navbar.tsx` / `Navbar.css` | Fixed navbar, gradient border |
+| `src/components/ServiceCard.tsx` / `ServiceCard.css` | Service card: hover line, hover/scroll/touch triggers |
+| `src/components/HoverVideo.tsx` / `HoverVideo.css` | Forward/backward video playback, poster overlay |
 | `src/App.tsx` | Page composition |

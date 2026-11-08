@@ -53,3 +53,20 @@
 @media (min-width: 1280px) {
   .service-card-page-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+/* Scroll-test room: a full viewport above and below the cards. */
+.service-card-page-spacer {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-inline: 16px;
+}
+
+.service-card-page-hint {
+  margin: 0;
+  color: var(--color-gray-600);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  text-align: center;
+}

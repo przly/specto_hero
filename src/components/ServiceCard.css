@@ -13,13 +13,13 @@
   background: var(--color-gray-800);
 }
 
-/* White line on top of the divider. ServiceCard drives it with the Web
+/* Brighter line (gray-600) on top of the divider (gray-800). ServiceCard drives it with the Web
    Animations API: it grows in from the side the cursor entered and retracts
    toward the side it left. Only transform is animated (compositor-only). */
 .service-card-line-fill {
   position: absolute;
   inset: 0;
-  background: rgb(255 255 255 / 0.15);
+  background: var(--color-gray-600);
   transform: scaleX(0);
   transform-origin: left center;
 }

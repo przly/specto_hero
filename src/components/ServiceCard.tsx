@@ -7,7 +7,8 @@ import './ServiceCard.css'
    title (Title h4 / medium / text-3xl) and text.
 
    The graphic is a short `video` that plays forward while the card is
-   hovered and backward when the pointer leaves. */
+   hovered and backward when the pointer leaves. On touch screens (no
+   hover) the card plays while it crosses the middle of the viewport. */
 
 // Touch has no real hover: a tap fires enter and leave back to back,
 // which would play and instantly rewind. Only mouse/pen drive it.
@@ -29,10 +30,47 @@ function readSegment(el: HTMLElement): Segment {
   return [a, a + m.a]
 }
 
-// Which side of the card the pointer is on, by horizontal position.
-const sideOf = (event: PointerEvent<HTMLElement>) => {
-  const rect = event.currentTarget.getBoundingClientRect()
-  return event.clientX < rect.left + rect.width / 2 ? 'left' : 'right'
+type Side = 'left' | 'right'
+
+// Which side of the card a point is on, by horizontal position.
+const sideOf = (rect: DOMRect, x: number): Side => (x < rect.left + rect.width / 2 ? 'left' : 'right')
+
+// Entering from the top or bottom edge always grows the line left → right,
+// so it reads as a sweep. Only a side entry grows it from that side.
+const entrySideOf = (rect: DOMRect, x: number, y: number): Side => {
+  const toVertical = Math.min(y - rect.top, rect.bottom - y)
+  const toHorizontal = Math.min(x - rect.left, rect.right - x)
+  return toVertical <= toHorizontal ? 'left' : sideOf(rect, x)
+}
+
+/* Browsers don't send pointerenter/leave when the page scrolls under a
+   resting cursor (Safari never does, Chrome only sometimes). So remember
+   where the mouse last was, and on scroll each card hit-tests that point.
+   Shared by every card: one set of window listeners. */
+let lastPointer: { x: number; y: number } | null = null
+let pointerListeners = 0
+const trackPointer = (event: globalThis.PointerEvent) => {
+  lastPointer = event.pointerType === 'touch' ? null : { x: event.clientX, y: event.clientY }
+}
+// Cursor left the window: nothing is under it any more.
+const forgetPointer = (event: globalThis.PointerEvent) => {
+  if (!event.relatedTarget) lastPointer = null
+}
+function usePointerTracking() {
+  useEffect(() => {
+    if (pointerListeners++ === 0) {
+      window.addEventListener('pointermove', trackPointer, { passive: true })
+      window.addEventListener('pointerdown', trackPointer, { passive: true })
+      document.addEventListener('pointerout', forgetPointer, { passive: true })
+    }
+    return () => {
+      if (--pointerListeners === 0) {
+        window.removeEventListener('pointermove', trackPointer)
+        window.removeEventListener('pointerdown', trackPointer)
+        document.removeEventListener('pointerout', forgetPointer)
+      }
+    }
+  }, [])
 }
 
 type ServiceCardProps = ServiceItem & {
@@ -40,7 +78,7 @@ type ServiceCardProps = ServiceItem & {
   rate?: number
 }
 
-export default function ServiceCard({ video, rate = 1, title, text }: ServiceCardProps) {
+export default function ServiceCard({ video, poster, rate = 1, title, text }: ServiceCardProps) {
   const [hovered, setHovered] = useState(false)
   const [videoDuration, setVideoDuration] = useState<number | null>(null)
   const fillRef = useRef<HTMLDivElement>(null)
@@ -72,22 +110,110 @@ export default function ServiceCard({ video, rate = 1, title, text }: ServiceCar
     })
   }
 
+  const cardRef = useRef<HTMLDivElement>(null)
+  const hoveredRef = useRef(false)
+
+  // Both the pointer events and the scroll check go through these, so a card
+  // never enters twice or leaves while it isn't hovered.
+  const enter = (x: number, y: number) => {
+    const card = cardRef.current
+    if (!card || hoveredRef.current) return
+    hoveredRef.current = true
+    setHovered(true)
+    const edge = entrySideOf(card.getBoundingClientRect(), x, y) === 'left' ? 0 : 1
+    animateLine([0, 1], [edge, edge])
+  }
+
+  const leave = (x: number) => {
+    const card = cardRef.current
+    if (!card || !hoveredRef.current) return
+    hoveredRef.current = false
+    setHovered(false)
+    const edge = sideOf(card.getBoundingClientRect(), x) === 'left' ? 0 : 1
+    animateLine([edge, edge])
+  }
+
+  // The scroll listener is added once; keep it calling the latest handlers
+  // (animateLine closes over the current line duration).
+  const handlersRef = useRef({ enter, leave })
+  useEffect(() => {
+    handlersRef.current = { enter, leave }
+  })
+
+  usePointerTracking()
+
+  useEffect(() => {
+    let frame: number | null = null
+    const check = () => {
+      frame = null
+      const card = cardRef.current
+      if (!card) return
+      const p = lastPointer
+      // No mouse (touch screens, or it left the window): nothing to hit-test.
+      // Touch is driven by the viewport-middle observer below instead.
+      if (!p) return
+      // Same rule as real hover: whatever is topmost under the cursor.
+      const over = card.contains(document.elementFromPoint(p.x, p.y))
+      if (over) handlersRef.current.enter(p.x, p.y)
+      else if (hoveredRef.current) handlersRef.current.leave(p.x)
+    }
+    const onScroll = () => {
+      if (frame === null) frame = requestAnimationFrame(check)
+    }
+    // Capture: also catches scrolling inside nested scroll containers.
+    window.addEventListener('scroll', onScroll, { passive: true, capture: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll, { capture: true })
+      if (frame !== null) cancelAnimationFrame(frame)
+    }
+  }, [])
+
+  // Touch screens have no hover: play while the card crosses the middle of
+  // the viewport, play back out once it scrolls past. The root margin
+  // shrinks the viewport to a 0px line across its middle.
+  useEffect(() => {
+    const card = cardRef.current
+    if (!card) return
+    const noHover = window.matchMedia('(hover: none)')
+    let observer: IntersectionObserver | null = null
+
+    const sync = () => {
+      observer?.disconnect()
+      observer = null
+      if (!noHover.matches) return
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          const { left, top } = entry.boundingClientRect
+          // A point on the top-left corner: the line grows from the left,
+          // and retracts back to the left as the video rewinds.
+          if (entry.isIntersecting) handlersRef.current.enter(left, top)
+          else handlersRef.current.leave(left)
+        },
+        { rootMargin: '-50% 0px -50% 0px' },
+      )
+      observer.observe(card)
+    }
+
+    sync()
+    noHover.addEventListener('change', sync)
+    return () => {
+      noHover.removeEventListener('change', sync)
+      observer?.disconnect()
+    }
+  }, [])
+
   const onEnter = (event: PointerEvent<HTMLDivElement>) => {
     if (!isHoverPointer(event)) return
-    setHovered(true)
-    const edge = sideOf(event) === 'left' ? 0 : 1
-    animateLine([0, 1], [edge, edge])
+    enter(event.clientX, event.clientY)
   }
 
   const onLeave = (event: PointerEvent<HTMLDivElement>) => {
     if (!isHoverPointer(event)) return
-    setHovered(false)
-    const edge = sideOf(event) === 'left' ? 0 : 1
-    animateLine([edge, edge])
+    leave(event.clientX)
   }
 
   return (
-    <div className="service-card" onPointerEnter={onEnter} onPointerLeave={onLeave}>
+    <div className="service-card" ref={cardRef} onPointerEnter={onEnter} onPointerLeave={onLeave}>
       <div className="service-card-line">
         <div className="service-card-line-fill" ref={fillRef} />
       </div>
@@ -95,6 +221,7 @@ export default function ServiceCard({ video, rate = 1, title, text }: ServiceCar
         <HoverVideo
           className="service-card-image service-card-video"
           src={video}
+          poster={poster}
           rate={rate}
           playing={hovered}
           label={title}
