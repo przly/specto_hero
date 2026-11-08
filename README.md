@@ -8,15 +8,6 @@ any stack — the numbers and trigger points are what matter, not the specific l
 Reference Figma frames: "Initial State" (node `5370:9133`) → "Scrolled into view" (node
 `5370:9124`), file `1AKutGdExY8tNB1WLkVnSk`.
 
-## Getting started
-
-```bash
-npm install
-npm run dev      # local dev server
-npm run build    # type-check + production build to dist/
-npm run lint      # oxlint
-```
-
 ## Hero animations
 
 Source: `src/components/Hero.tsx`, `Hero.css`. Built with [motion.dev](https://motion.dev) (`useScroll` + `useTransform`), but every effect is a plain formula.
