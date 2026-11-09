@@ -1,5 +1,4 @@
 import { useLayoutEffect, type RefObject } from 'react'
-import { useDiagonalArrow } from './revealTrigger'
 import { prefersReducedMotion, slideEase, slideFrames } from './slideIn'
 
 /** Seconds for every arrow push (IntroText + section headers). Fixed, not
@@ -11,17 +10,12 @@ export const ARROW_PUSH_DURATION = 0.8
    pushes the title, on the same curve and timing as the slide. */
 const ARROW_START_ROTATE = -45 // deg
 
-/* With "Arrow 45°" on in the dev trigger panel, the arrow comes in along
-   its 45° diagonal (from the top left: the same distance up as across)
-   instead of straight from the left. The title is still pushed sideways. */
-const startTranslate = (fromX: number, diagonal: boolean) => `${fromX}px ${diagonal ? fromX : 0}px`
-
-function arrowFrames(fromX: number, fromDeg: number, diagonal: boolean): Keyframe[] {
+function arrowFrames(fromX: number, fromDeg: number): Keyframe[] {
   const frames = slideFrames(fromX)
-  return frames.map((_, i) => {
-    const left = 1 - slideEase(i / (frames.length - 1))
-    return { translate: startTranslate(fromX * left, diagonal), rotate: `${fromDeg * left}deg` }
-  })
+  return frames.map((frame, i) => ({
+    ...frame,
+    rotate: `${fromDeg * (1 - slideEase(i / (frames.length - 1)))}deg`,
+  }))
 }
 
 /* Section-header arrow push, the same move as the IntroText arrow below the
@@ -33,14 +27,12 @@ function arrowFrames(fromX: number, fromDeg: number, diagonal: boolean): Keyfram
 
    `rowRef` is the flex row holding the arrow (first child) and the
    RevealText title. While hidden, both sit at their start state (inline
-   `translate`); cancelling on hide drops back to it, so Replay works. */
+   `translate`); cancelling on hide drops back to it, so the replay on scroll-up works. */
 export function useArrowPush(
   rowRef: RefObject<HTMLElement | null>,
   visible: boolean,
   { delay, duration }: { delay: number; duration: number },
 ) {
-  const diagonal = useDiagonalArrow()
-
   useLayoutEffect(() => {
     const row = rowRef.current
     const arrow = row?.firstElementChild as (HTMLElement | SVGElement) | null
@@ -56,7 +48,7 @@ export function useArrowPush(
     // Just out of view past the viewport's left edge.
     const from = -(arrowRect.right + 8)
 
-    arrow.style.translate = startTranslate(from, diagonal)
+    arrow.style.translate = `${from}px 0`
     arrow.style.rotate = `${ARROW_START_ROTATE}deg`
     title.style.translate = `${-indent}px 0`
     if (!visible) return
@@ -68,9 +60,9 @@ export function useArrowPush(
       fill: 'both',
     }
     const animations = [
-      arrow.animate(arrowFrames(from, ARROW_START_ROTATE, diagonal), timing),
+      arrow.animate(arrowFrames(from, ARROW_START_ROTATE), timing),
       title.animate(slideFrames(-indent), timing),
     ]
     return () => animations.forEach((a) => a.cancel())
-  }, [rowRef, visible, delay, duration, diagonal])
+  }, [rowRef, visible, delay, duration])
 }

@@ -127,7 +127,7 @@ function CountUp({ value, visible }: { value: string; visible: boolean }) {
 
 /** The module itself, as on the website: used by the homepage and /numbers. */
 export function NumbersModule() {
-  // Trigger line + replay-on-scroll-up from the dev trigger panel. Observes
+  // Trigger line + replay-on-scroll-up. Observes
   // the subtitle + title block, so one crossing starts "Hush.", and the title
   // follows after TITLE_DELAY.
   const [titleRef, titleVisible] = useTestReveal<HTMLDivElement>()

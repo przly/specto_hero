@@ -131,7 +131,7 @@ function AllProjectsButton() {
 }
 
 export function ProjectCardListModule() {
-  // Trigger line + replay-on-scroll-up from the dev trigger panel.
+  // Trigger line + replay-on-scroll-up.
   const [titleRef, titleVisible] = useTestReveal<HTMLDivElement>()
   // Arrow push (like the IntroText arrow): starts 35% into the last word's
   // reveal, once the title has landed. Same travel time as the IntroText

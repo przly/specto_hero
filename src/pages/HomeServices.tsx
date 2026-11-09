@@ -74,7 +74,7 @@ function PrimaryButton({ href, children }: { href: string; children: string }) {
 /** The module itself, as on the website: used by the homepage and /home-services. */
 export function HomeServicesModule() {
   const { title, button, intro_text, about_items } = content
-  // Trigger line + replay-on-scroll-up from the dev trigger panel.
+  // Trigger line + replay-on-scroll-up.
   const [titleRef, titleVisible] = useTestReveal<HTMLDivElement>()
   // Arrow push (like the IntroText arrow): starts 35% into the last word's
   // reveal, once the title has landed.

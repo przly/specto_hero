@@ -11,7 +11,6 @@ import JiraTicketPage from './pages/JiraTicketPage'
 import ProcessPage from './pages/ProcessPage'
 import ButtonsPage from './pages/ButtonsPage'
 import RouteSwitcher from './components/RouteSwitcher'
-import TriggerGuide from './components/TriggerGuide'
 
 function App() {
   return (
@@ -30,7 +29,6 @@ function App() {
         <Route path="/buttons" element={<ButtonsPage />} />
       </Routes>
       <RouteSwitcher />
-      <TriggerGuide />
     </>
   )
 }

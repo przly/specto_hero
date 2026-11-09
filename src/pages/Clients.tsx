@@ -171,8 +171,7 @@ export function ClientsModule() {
   // selection reveals with the faster user timing.
   const userNavRef = useRef(false)
   // The title and the first testimonial reveal together when the title
-  // crosses the trigger line (and replay on scroll up when that's on in the
-  // dev trigger panel).
+  // crosses the trigger line (and replay on scroll up).
   const [titleRef, titleVisible] = useTestReveal<HTMLDivElement>()
   const [titleWords, setTitleWords] = useState(0)
   const [firstCardLines, setFirstCardLines] = useState(0)
@@ -378,7 +377,7 @@ export function ClientsModule() {
     else timer.play()
   }, [paused, selectedIndex, emblaApi])
 
-  // Replay (dev trigger panel): once scrolled back up past the slider, go
+  // Replay: once scrolled back up past the slider, go
   // back to the first testimonial with a fresh timer, out of sight, so the
   // next scroll down reveals it again from the start.
   useEffect(() => {
