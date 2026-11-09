@@ -144,6 +144,17 @@ export default function ServiceCard({ video, poster, rate = 1, title, text }: Se
 
   useEffect(() => {
     let frame: number | null = null
+    // Only hit-test while the card is on screen (or still marked hovered, so
+    // it can leave): elementFromPoint forces a layout, and every card used
+    // to run it on every scroll frame anywhere on the page.
+    let inView = false
+    const card = cardRef.current
+    const visibility = card
+      ? new IntersectionObserver(([entry]) => {
+          inView = entry.isIntersecting
+        })
+      : null
+    if (card) visibility?.observe(card)
     const check = () => {
       frame = null
       const card = cardRef.current
@@ -158,12 +169,14 @@ export default function ServiceCard({ video, poster, rate = 1, title, text }: Se
       else if (hoveredRef.current) handlersRef.current.leave(p.x)
     }
     const onScroll = () => {
+      if (!inView && !hoveredRef.current) return
       if (frame === null) frame = requestAnimationFrame(check)
     }
     // Capture: also catches scrolling inside nested scroll containers.
     window.addEventListener('scroll', onScroll, { passive: true, capture: true })
     return () => {
       window.removeEventListener('scroll', onScroll, { capture: true })
+      visibility?.disconnect()
       if (frame !== null) cancelAnimationFrame(frame)
     }
   }, [])

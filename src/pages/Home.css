@@ -1,0 +1,67 @@
+/* specto-website DefaultLayout `#main` (site.css): the page content sits on
+   black, and a rounded black tab hangs over the top of the white footer
+   (#main::before), so the content reads as a card ending above the footer.
+   pt-0: the homepage starts with the hero (has-[.hero-module]:pt-0). */
+.home-main {
+  position: relative;
+  min-height: 100vh;
+  background: var(--color-black);
+  color: var(--color-gray-100);
+  font-family: var(--font-primary);
+}
+
+/* pointer-events-none absolute top-full left-0 z-1 h-6 w-full rounded-b-2xl
+   bg-black lg:rounded-b-3xl */
+.home-main::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  height: 24px;
+  border-radius: 0 0 16px 16px;
+  background: var(--color-black);
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .home-main::before { border-radius: 0 0 24px 24px; }
+}
+
+/* Shared by the homepage modules ported from specto-website
+   (IntroText, LogoCarousel, ProjectCardList, LetsBuild). */
+
+/* .container (site.css): 3xl:max-w-374 mx-auto max-w-full px-4 md:max-w-180
+   lg:max-w-240 xl:max-w-7xl */
+.home-container {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+/* SectionMargin "default" → Margin 200: block w-full h-24 lg:h-50 */
+.section-margin-default {
+  display: block;
+  width: 100%;
+  height: 96px;
+}
+
+@media (min-width: 768px) {
+  .home-container { max-width: 720px; }
+}
+
+@media (min-width: 1024px) {
+  .home-container { max-width: 960px; }
+  .section-margin-default { height: 200px; }
+}
+
+@media (min-width: 1280px) {
+  .home-container { max-width: 1280px; }
+}
+
+/* 3xl = 92.5rem */
+@media (min-width: 1480px) {
+  .home-container { max-width: 1496px; }
+}

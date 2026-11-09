@@ -1,10 +1,24 @@
+import { useRef } from 'react'
 import ServiceCard from '../components/ServiceCard'
 import { SERVICE_ITEMS } from '../components/serviceItems'
+import { RevealText } from '../RevealText'
+import { ARROW_PUSH_DURATION, useArrowPush } from '../components/arrowPush'
+import { useTestReveal } from '../components/revealTrigger'
 import './HomeServices.css'
 
 /* Port of specto-website `modules/HomeServices` (+ SectionHeader, Title,
    Text, Button primary, SectionMargin). Content is the module's Storybook
-   default. Tailwind classes are translated to HomeServices.css. */
+   default. Tailwind classes are translated to HomeServices.css.
+
+   Addition: the title (per word) and the intro paragraph (per line) reveal
+   with the Specto text-reveal engine (RevealText,
+   github.com/przly/Specto_TextReveal), each on its own trigger, at the
+   engine's default speed. */
+
+// Specto_TextReveal timings: title per word 1.6s / 20ms, paragraph per line
+// 1.3s / 60ms (SPECTO_BODY_DURATION / SPECTO_BODY_STAGGER).
+const TITLE_REVEAL = { duration: 1.6, stagger: 0.02 }
+const TEXT_REVEAL = { duration: 1.3, stagger: 0.06 }
 
 const content = {
   title: '4 areas of expertise',
@@ -57,45 +71,80 @@ function PrimaryButton({ href, children }: { href: string; children: string }) {
   )
 }
 
-export default function HomeServices() {
+/** The module itself, as on the website: used by the homepage and /home-services. */
+export function HomeServicesModule() {
   const { title, button, intro_text, about_items } = content
+  // Trigger line + replay-on-scroll-up from the dev trigger panel.
+  const [titleRef, titleVisible] = useTestReveal<HTMLDivElement>()
+  // Arrow push (like the IntroText arrow): starts 35% into the last word's
+  // reveal, once the title has landed.
+  const titleRowRef = useRef<HTMLDivElement>(null)
+  useArrowPush(titleRowRef, titleVisible, {
+    delay: (title.split(/\s+/).length - 1) * TITLE_REVEAL.stagger + TITLE_REVEAL.duration * 0.35,
+    // Same travel time as the IntroText arrow (its PUSH_DURATION).
+    duration: ARROW_PUSH_DURATION,
+  })
+  const [textRef, textVisible] = useTestReveal<HTMLDivElement>()
 
   return (
-    <main className="home-services-page">
-      <div className="home-services-spacer" />
-
-      <section className="home-services">
-        <div className="container home-services-grid">
-          {/* SectionHeader */}
-          <div className="section-header">
-            <div className="section-header-title-wrap">
-              <div className="section-header-title-row">
-                <CrossArrowDownIcon className="section-header-arrow" />
-                <h2 className="heading heading-3 font-zero section-header-title">{title}</h2>
-              </div>
-            </div>
-            <div className="section-header-aside section-header-button">
-              <PrimaryButton href={button.href}>{button.title}</PrimaryButton>
-            </div>
-          </div>
-
-          <div className="home-services-intro">
-            <p className="editor-text home-services-intro-text">{intro_text}</p>
-            <div className="home-services-mobile-button">
-              <PrimaryButton href={button.href}>{button.title}</PrimaryButton>
+    <section className="home-services">
+      <div className="container home-services-grid">
+        {/* SectionHeader */}
+        <div className="section-header">
+          <div className="section-header-title-wrap" ref={titleRef}>
+            <div className="section-header-title-row" ref={titleRowRef}>
+              <CrossArrowDownIcon className="section-header-arrow" />
+              <RevealText
+                as="h2"
+                text={title}
+                by="word"
+                className="heading heading-3 font-zero section-header-title"
+                {...TITLE_REVEAL}
+                isTriggered={titleVisible}
+                hideDelay={0}
+              />
             </div>
           </div>
-
-          <div className="home-services-items">
-            {about_items.map((item) => (
-              <ServiceCard key={item.title} {...item} />
-            ))}
+          <div className="section-header-aside section-header-button">
+            <PrimaryButton href={button.href}>{button.title}</PrimaryButton>
           </div>
         </div>
 
-        {/* SectionMargin size="default" → Margin 200 */}
-        <div className="section-margin-default" />
-      </section>
+        <div className="home-services-intro">
+          <div ref={textRef}>
+            <RevealText
+              as="p"
+              text={intro_text}
+              by="line"
+              className="editor-text home-services-intro-text"
+              {...TEXT_REVEAL}
+              isTriggered={textVisible}
+              hideDelay={0}
+            />
+          </div>
+          <div className="home-services-mobile-button">
+            <PrimaryButton href={button.href}>{button.title}</PrimaryButton>
+          </div>
+        </div>
+
+        <div className="home-services-items">
+          {about_items.map((item) => (
+            <ServiceCard key={item.title} {...item} />
+          ))}
+        </div>
+      </div>
+
+      {/* SectionMargin size="default" → Margin 200 */}
+      <div className="section-margin-default" />
+    </section>
+  )
+}
+
+export default function HomeServices() {
+  return (
+    <main className="home-services-page">
+      <div className="home-services-spacer" />
+      <HomeServicesModule />
     </main>
   )
 }

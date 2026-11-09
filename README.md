@@ -90,7 +90,7 @@ Source: `src/components/ServiceCard.tsx` / `ServiceCard.css`, `HoverVideo.tsx` /
 | File | Contains |
 | --- | --- |
 | `src/components/Hero.tsx` / `Hero.css` | Hero layout, video grow/zoom, image + hint parallax |
-| `src/components/Navbar.tsx` / `Navbar.css` | Fixed navbar, gradient border |
+| `src/components/SiteHeader.tsx` / `SiteHeader.css` | Fixed site header (clone of specto-website `globals/SiteHeader`), mobile full-screen menu |
 | `src/components/ServiceCard.tsx` / `ServiceCard.css` | Service card: hover line, hover/scroll/touch triggers |
 | `src/components/HoverVideo.tsx` / `HoverVideo.css` | Forward/backward video playback, poster overlay |
 | `src/App.tsx` | Page composition |

@@ -42,11 +42,13 @@
   aspect-ratio: 1 / 1;
 }
 
-/* Title modifier="h4" weight="medium" titleClassName="text-3xl!" */
+/* Title modifier="h4" weight="medium" titleClassName="text-3xl!". The
+   medium weight never applies on the website: its unlayered
+   .heading { font-normal } beats Tailwind's layered utility, so it renders 400. */
 .service-card-title.heading-4 {
   margin: 0;
   font-size: var(--text-3xl);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-normal);
 }
 
 /* Text (.editor-text) className="pr-5" */

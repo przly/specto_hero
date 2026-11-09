@@ -1,5 +1,6 @@
 .hero {
-  background: var(--color-almost-black);
+  /* Pure black, like the Numbers and Clients modules below it on the homepage. */
+  background: var(--color-black);
   position: relative;
 }
 
@@ -48,7 +49,8 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  padding: 24px 24px 120px;
+  /* 200px bottom: space to the IntroText below (website HeroVideo: pb-30, 120px) */
+  padding: 24px 24px 200px;
   box-sizing: border-box;
   display: flex;
   justify-content: center;
@@ -68,7 +70,11 @@
   background-clip: padding-box, border-box;
   box-shadow: 0 40px 80px rgba(0, 0, 0, 0.35);
   overflow: hidden;
-  will-change: width;
+  /* Full width; Hero.tsx scales it down from the top centre while it
+     scrolls in (compositor-only, no layout). */
+  width: 100%;
+  transform-origin: 50% 0;
+  will-change: transform;
 }
 
 .hero-video-media {

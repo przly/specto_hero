@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { motion, useMotionValue, useReducedMotion, useScroll, useTransform } from 'motion/react'
 import heroText from '../assets/hero-text.png'
 import heroTextWebp from '../assets/hero-text.webp'
@@ -14,6 +14,9 @@ const FINAL_EXTRA_INSET = 0
 const INITIAL_ZOOM = 1.4
 const FINAL_ZOOM = 1
 const IMAGE_PARALLAX_FACTOR = 0.15 // 0 = pinned in place, 1 = scrolls at normal speed
+// .hero-video border-radius (Hero.css), kept constant on screen while the
+// frame is scaled down (see `frameScale` below).
+const FRAME_RADIUS = 24
 
 export default function Hero() {
   const videoRef = useRef<HTMLDivElement>(null)
@@ -21,15 +24,21 @@ export default function Hero() {
   const prefersReducedMotion = useReducedMotion()
 
   // Autoplaying background footage is itself a motion effect — pause it for
-  // users who've asked the OS to reduce motion.
+  // users who've asked the OS to reduce motion. It also pauses while it's
+  // scrolled out of view, so it isn't decoding frames nobody sees.
   useEffect(() => {
     const media = mediaRef.current
     if (!media) return
     if (prefersReducedMotion) {
       media.pause()
-    } else {
-      media.play().catch(() => {})
+      return
     }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) media.play().catch(() => {})
+      else media.pause()
+    })
+    observer.observe(media)
+    return () => observer.disconnect()
   }, [prefersReducedMotion])
 
   // Progress 0 -> 1 as the video scrolls up from just below the viewport to
@@ -60,7 +69,28 @@ export default function Hero() {
     [0, 1],
     [INITIAL_EXTRA_INSET, FINAL_EXTRA_INSET],
   )
-  const width = useTransform(extraInset, (v) => `calc(100% - ${v}px)`)
+  // The frame narrows by `extraInset`, drawn as a uniform scale of the
+  // full-width frame (top centre) instead of animating `width`: same size on
+  // screen, but compositor-only. Animating width re-laid out the whole page
+  // on every scroll frame (its 16:9 height changed too). The radius is
+  // divided by the scale so it stays 24px on screen. The content below sits
+  // at its final position from the start, which is out of view while this
+  // runs (the frame is taller than the rest of the viewport).
+  const frameWidth = useMotionValue(0)
+  useLayoutEffect(() => {
+    const frame = videoRef.current
+    if (!frame) return
+    const measure = () => frameWidth.set(frame.offsetWidth)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(frame)
+    return () => observer.disconnect()
+  }, [frameWidth])
+  const frameScale = useTransform(() => {
+    const w = frameWidth.get()
+    return w > 0 ? Math.max(0, w - extraInset.get()) / w : 1
+  })
+  const frameRadius = useTransform(frameScale, (s) => `${FRAME_RADIUS / (s || 1)}px`)
 
   // Video footage starts zoomed in 10% and eases back to its normal scale as
   // the frame widens, clipped by the frame's own rounded corners/overflow.
@@ -97,7 +127,11 @@ export default function Hero() {
       </div>
 
       <div className="hero-video-frame">
-        <motion.div ref={videoRef} className="hero-video" style={{ width }}>
+        <motion.div
+          ref={videoRef}
+          className="hero-video"
+          style={{ scale: frameScale, borderRadius: frameRadius }}
+        >
           <motion.video
             ref={mediaRef}
             className="hero-video-media"

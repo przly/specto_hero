@@ -1,0 +1,278 @@
+/* specto-website modules/ProjectCardList + molecules/SectionHeader +
+   molecules/Card. */
+
+.project-card-list h2,
+.project-card-list h3 {
+  margin: 0;
+}
+
+/* ── SectionHeader ─────────────────────────────────────────────── */
+
+/* mb-14 xl:mb-22 (wrapper) + flex flex-col lg:flex-row lg:items-center
+   lg:justify-between */
+.pcl-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 56px;
+}
+
+/* flex flex-col gap-4 text-gray-100 lg:gap-6 */
+.pcl-header-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--color-gray-100);
+}
+
+/* flex max-w-122 items-start gap-6.5 md:gap-8 */
+.pcl-header-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 26px;
+  max-width: 488px;
+}
+
+/* Title per-word reveal (RevealText, by="word"), set up like the Services
+   section header: line-height set explicitly on the engine's lines (word
+   mode sets the block itself to line-height 0, so it can't be inherited),
+   masks top-aligned and moved down by the engine's -7% end offset, so the
+   revealed title sits where the static one did. */
+.pcl-header-title .hero-line {
+  line-height: var(--line-height-120); /* heading-3 */
+}
+
+.pcl-header-title .hero-word-wrap {
+  position: relative;
+  top: 0.07lh;
+  vertical-align: top;
+}
+
+/* Icon "CrossArrowDown": mt-2 w-5 shrink-0 md:mt-1.5 md:w-8 lg:mt-3.5 */
+.pcl-header-arrow {
+  display: block;
+  flex-shrink: 0;
+  width: 20px;
+  margin-top: 8px;
+}
+
+.pcl-header-arrow svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Icon.css: fill currentColor */
+.pcl-header-arrow svg,
+.pcl-header-arrow svg path,
+.pcl-header-arrow rect {
+  fill: currentColor;
+}
+
+/* flex flex-col */
+.pcl-header-actions {
+  display: flex;
+  flex-direction: column;
+}
+
+/* relative; only rendered from lg up (useMedia max-width: 1023px) */
+.pcl-header-button {
+  position: relative;
+  display: none;
+}
+
+/* ── Grid ──────────────────────────────────────────────────────── */
+
+/* relative grid grid-cols-1 gap-x-2 gap-y-10 md:grid-cols-2 md:gap-y-12
+   lg:grid-cols-3 */
+.pcl-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 8px;
+  row-gap: 40px;
+}
+
+/* mt-10 text-right; only below lg */
+.pcl-mobile-button {
+  margin-top: 40px;
+  text-align: right;
+}
+
+/* ── Card (full_width) ─────────────────────────────────────────── */
+
+/* group relative flex w-full max-w-full flex-col */
+.project-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* relative mb-2 overflow-hidden rounded-lg aspect-376/384 md:aspect-484/495 */
+.project-card-media {
+  position: relative;
+  margin-bottom: 8px;
+  /* overflow-hidden moved to the img wrapper: clipping here would also clip
+     the 0.5px stroke (::after) and its anti-aliasing would erase it along
+     the rounded corners. */
+  border-radius: 8px;
+  aspect-ratio: 376 / 384;
+}
+
+/* Img wrapper: absolute inset-0. Change from the website: no hover zoom
+   (its scale-105 → group-hover:scale-100 is removed); instead the image
+   brightens on hover like a raised exposure. brightness() multiplies every
+   channel (as exposure does), so highlights bloom while blacks stay deep,
+   unlike a white overlay, which would wash them out. */
+.project-card-img-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  filter: brightness(1);
+  transition: filter 400ms cubic-bezier(0.23, 1, 0.32, 1);
+  will-change: filter;
+}
+
+@media (hover: hover) {
+  .project-card:hover .project-card-img-wrap { filter: brightness(1.1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-card-img-wrap { transition: none; }
+}
+
+/* Gradient stroke on the image: 0.5px white, 20% at the top fading to 5%
+   at the bottom. A padded gradient box with its content area masked out, so
+   only the 0.5px ring shows and it follows the rounded corners. Sits above
+   the image (and its hover brightening), not affected by it. */
+.project-card-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 0.5px;
+  border-radius: inherit;
+  background: linear-gradient(to bottom, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0.05));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+/* absolute h-full w-full object-cover */
+.project-card-img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Title h6 / h3: text-white max-[767px]:text-xl! */
+.project-card-title {
+  font-size: var(--text-xl);
+}
+
+/* Title roll on hover (driven from ProjectCardList.tsx), per word: each
+   mask clips to its word's own box; copies sit directly below (and above)
+   it, so translating by -100% moves the word exactly one line height.
+   vertical-align: top keeps the inline-block masks from adding space. */
+.project-card-title-mask {
+  display: inline-block;
+  overflow: clip;
+  vertical-align: top;
+}
+
+.project-card-title-roll {
+  position: relative;
+  display: block;
+}
+
+.project-card-title-copy {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+}
+
+/* Copy one line above, so a hover mid-roll can restart one line lower
+   without a visible jump (see roll() in ProjectCardList.tsx). */
+.project-card-title-copy--above {
+  top: -100%;
+}
+
+/* Text: editor-text leading-normal text-xs (gray-400) */
+.project-card-text {
+  color: var(--color-gray-400);
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+}
+
+/* Anchor: absolute inset-0 z-10 size-full opacity-0 */
+.project-card-link {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+
+/* Keyboard focus: the link is invisible, so outline the whole card. */
+.project-card-link:focus-visible {
+  opacity: 1;
+  color: transparent;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+@media (min-width: 768px) {
+  .pcl-header-title-row { gap: 32px; }
+
+  .pcl-header-arrow {
+    width: 32px;
+    margin-top: 6px;
+  }
+
+  .pcl-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 48px;
+  }
+
+  .project-card-media { aspect-ratio: 484 / 495; }
+
+  /* back to heading-6 (text-lg, lg:text-xl) */
+  .project-card-title { font-size: var(--text-lg); }
+}
+
+@media (min-width: 1024px) {
+  .pcl-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pcl-header-main { gap: 24px; }
+
+  .pcl-header-arrow { margin-top: 14px; }
+
+  .pcl-header-button { display: block; }
+
+  .pcl-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+  .pcl-mobile-button { display: none; }
+
+  .project-card-title { font-size: var(--text-xl); }
+}
+
+@media (min-width: 1280px) {
+  .pcl-header { margin-bottom: 88px; }
+}

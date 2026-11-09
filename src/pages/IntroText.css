@@ -1,0 +1,131 @@
+/* specto-website modules/IntroText (variant "default"). */
+
+/* relative */
+.intro-text-inner {
+  position: relative;
+  /* First-line indent; 0 below md, where the arrow sits above the text. */
+  --intro-indent: 0px;
+}
+
+/* Arrow push (driven from IntroText.tsx). Start state: the arrow waits
+   off-screen left, and the first line keeps its text-indent (so the
+   paragraph wraps the same as the final layout) but is shifted back by it,
+   flush left with the other lines while they reveal. */
+.intro-text-icon {
+  translate: -100vw 0;
+}
+
+.intro-text-title--indent .hero-line-mask:first-child {
+  translate: calc(-1 * var(--intro-indent)) 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-text-icon,
+  .intro-text-title--indent .hero-line-mask:first-child {
+    translate: 0 0;
+  }
+}
+
+/* Icon "ArrowRight": icon relative block left-0 mb-6 ml-1 w-4 rotate-45
+   text-white md:absolute md:top-3 md:w-7 md:rotate-0 lg:mb-0 lg:ml-0 */
+.intro-text-icon {
+  position: relative;
+  left: 0;
+  display: block;
+  width: 16px;
+  margin: 0 0 24px 4px;
+  rotate: 45deg;
+  color: var(--color-white);
+}
+
+/* Icon.css: .icon svg, .icon svg path, .icon rect { fill: currentColor } */
+.intro-text-icon svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.intro-text-icon svg,
+.intro-text-icon svg path,
+.intro-text-icon rect {
+  fill: currentColor;
+}
+
+/* heading-2 w-full whitespace-normal
+   max-[1280px]:text-4xl! max-[767px]:text-2xl! max-[767px]:leading-[1.2]!
+   Only heading-2 (no .heading), so colour, weight and tracking inherit from
+   the page: gray-100, normal, no tracking. The website's text-justify has no
+   effect there (its words are inline-blocks with no spaces between), so it
+   is left out: here the words have real spaces and it would spread them. */
+.intro-text-title {
+  width: 100%;
+  font-size: var(--text-2xl);
+  line-height: 1.2;
+  white-space: normal;
+}
+
+/* RevealText line mode: the engine's typography goes on `.hero-line`
+   descendants; take the breakpoint line-heights from .intro-text-title
+   (engine default is 1.2). */
+.intro-text-title .hero-line {
+  line-height: inherit;
+}
+
+/* The engine ends each line at y: -7% of its own height, so move the masks
+   down by the same amount: the revealed text sits where static text would. */
+.intro-text-title .hero-line-mask {
+  position: relative;
+  top: 0.07lh;
+}
+
+/* First-word indent (website: AnimatedWord md:first:indent-*), as
+   text-indent on the title so the engine's hidden measuring copy wraps with
+   it too. text-indent is inherited, so lines after the first reset it. */
+.intro-text-title--indent .hero-line-mask:not(:first-child) {
+  text-indent: 0;
+}
+
+/* h-6 lg:hidden */
+.intro-text-gap {
+  height: 24px;
+}
+
+@media (min-width: 768px) {
+  .intro-text-icon {
+    position: absolute;
+    top: 12px;
+    width: 28px;
+    rotate: 0deg;
+  }
+
+  .intro-text-title {
+    font-size: var(--text-4xl);
+    line-height: calc(2.5 / 2.25); /* Tailwind text-4xl line-height */
+  }
+
+  /* AnimatedWord md:first:indent-38 — the first word of title 1 */
+  .intro-text-inner { --intro-indent: 152px; }
+  .intro-text-title--indent { text-indent: var(--intro-indent); }
+}
+
+@media (min-width: 1024px) {
+  .intro-text-icon { margin: 0; }
+
+  .intro-text-gap { display: none; }
+}
+
+@media (min-width: 1280px) {
+  /* heading-2 xl:text-6xl (the max-[1280px] override stops at 1280px) */
+  .intro-text-title {
+    font-size: var(--text-6xl);
+    line-height: 1; /* Tailwind text-6xl line-height */
+  }
+
+  /* xl:first:indent-28 */
+  .intro-text-inner { --intro-indent: 112px; }
+}
+
+@media (min-width: 1536px) {
+  /* 2xl:first:indent-82 */
+  .intro-text-inner { --intro-indent: 328px; }
+}

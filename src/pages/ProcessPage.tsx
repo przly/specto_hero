@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type Ref } from 'react'
 import { useReducedMotion } from 'motion/react'
 import { RevealText } from '../RevealText'
+import { REVEAL_SPEED } from '../components/revealTrigger'
 import { TICKET_SWAP_MS } from '../components/jiraTicketTiming'
 import JiraTicket, { type AvatarTone, type TeamAvatar, type TicketState } from '../components/JiraTicket'
 import sectionExplore from '../assets/process/section-explore.png'
@@ -189,11 +190,12 @@ const REVEAL_HIDE_MS = 200
    blurred copy used to: one stagger after the pill plus the text gap
    (60ms + 80ms, mirroring --stagger-stagger × --reveal-tempo and
    --reveal-text-gap in ProcessPage.css). Duration and line stagger are the
-   Specto_TextReveal defaults. On hide, the parent's 200ms fade covers them,
+   Specto_TextReveal defaults, at the site-wide REVEAL_SPEED (the start
+   delay is not scaled: it lines up with the CSS pill / title). On hide, the parent's 200ms fade covers them,
    then the lines drop back below their masks. */
 const PARAGRAPH_DELAY_S = 0.06 + 0.08
-const PARAGRAPH_DURATION_S = 1.3
-const PARAGRAPH_LINE_STAGGER_S = 0.06
+const PARAGRAPH_DURATION_S = 1.3 / REVEAL_SPEED
+const PARAGRAPH_LINE_STAGGER_S = 0.06 / REVEAL_SPEED
 
 /** `after`: extra seconds, e.g. one stagger so the milestone body follows its title. */
 function paragraphTiming(slowMo: number, after = 0) {

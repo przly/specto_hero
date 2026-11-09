@@ -11,17 +11,40 @@ type LineCustom = {
   stagger: number;
   delay: number;
   hideDelay?: number;
+  exit?: RevealExit;
 };
 
+/** Out transition for reveals that can be taken back (see `exit` prop). */
+export type RevealExit = {
+  /** Seconds per line/word's exit. */
+  duration: number;
+  /** Seconds between each line/word starting its exit. */
+  stagger: number;
+};
+
+// Exits decelerate like the rest of the UI's closes (ease smooth-out).
+const EXIT_EASE = [0.22, 1, 0.36, 1] as const;
+
+// Full `transform` strings, not Motion's `y` shorthand: the shorthand runs on
+// the main thread (rAF) and drops frames under load; a transform string can
+// run as a hardware-accelerated animation. Percentages are of the line's own
+// height, same as `y` was.
 const lineVariants: Variants = {
-  // With `hideDelay` (the reveal can be taken back), the line snaps below its
-  // mask after that delay instead of sliding, so a parent fade can cover it.
-  hidden: ({ hideDelay }: LineCustom) =>
-    hideDelay === undefined
-      ? { y: '200%' }
-      : { y: '200%', transition: { duration: 0, delay: hideDelay } },
-  visible: ({ index, duration, stagger, delay }: LineCustom) => ({
-    y: '-7%',
+  // With `exit`, taking the reveal back slides each line up and out of its
+  // mask (continuing the upward motion). With `hideDelay`, the line snaps
+  // below its mask after that delay instead, so a parent fade can cover it.
+  hidden: ({ index, hideDelay, exit }: LineCustom) =>
+    exit
+      ? {
+          transform: 'translateY(-120%)',
+          transition: { duration: exit.duration, delay: index * exit.stagger, ease: EXIT_EASE },
+        }
+      : hideDelay === undefined
+        ? { transform: 'translateY(200%)' }
+        : { transform: 'translateY(200%)', transition: { duration: 0, delay: hideDelay } },
+  visible: ({ index, duration, stagger, delay, exit }: LineCustom) => ({
+    // After an exit the line waits above its mask; always come up from below.
+    transform: exit ? ['translateY(200%)', 'translateY(-7%)'] : 'translateY(-7%)',
     transition: {
       duration,
       delay: delay + index * stagger,
@@ -180,6 +203,12 @@ export type RevealTextProps = {
    */
   hideDelay?: number;
   /**
+   * For reveals driven by `isTriggered` that can turn false again: slide each
+   * line/word up and out of its mask instead of hiding it. The next reveal
+   * starts from below again. Omit for the original behaviour.
+   */
+  exit?: RevealExit;
+  /**
    * Starting stagger index — lets two separate RevealText blocks (e.g. a
    * heading followed by a paragraph) read as one continuous sequence
    * instead of each restarting its stagger at 0. Pass the previous block's
@@ -212,6 +241,7 @@ export function RevealText({
   stagger = 0.06,
   delay = 0,
   hideDelay,
+  exit,
   startIndex = 0,
   triggerMargin = 0,
   onCountChange,
@@ -259,7 +289,7 @@ export function RevealText({
                 <span className="hero-word-wrap hero-line">
                   <motion.span
                     className="hero-line hero-word"
-                    custom={{ index: startIndex + index, duration, stagger, delay, hideDelay }}
+                    custom={{ index: startIndex + index, duration, stagger, delay, hideDelay, exit }}
                     variants={variants}
                   >
                     {word}
@@ -281,7 +311,7 @@ export function RevealText({
               <span className="hero-line-mask hero-line" key={`${line}-${index}`}>
                 <motion.span
                   className="hero-line"
-                  custom={{ index: startIndex + index, duration, stagger, delay, hideDelay }}
+                  custom={{ index: startIndex + index, duration, stagger, delay, hideDelay, exit }}
                   variants={variants}
                 >
                   {line}

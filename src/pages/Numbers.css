@@ -1,122 +1,325 @@
+/* specto-website `modules/NumbersModule`, Tailwind → CSS.
+   Breakpoints: md 768, lg 1024, xl 1280, 3xl 1480, 2xl 1536. */
+
 .numbers-page {
   position: relative;
+  min-height: 100vh;
   background: var(--color-black);
+  color: var(--color-gray-100);
+  font-family: var(--font-primary);
 }
 
 .numbers-intro {
   height: 100vh;
 }
 
-.numbers-panel {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  box-sizing: border-box;
-  display: flex;
-  align-items: flex-start;
-  padding-top: calc(200px + (var(--stack-index, 0) * 116px));
-  padding-left: calc(25% + 14px);
-  padding-right: 24px;
-}
-
-.numbers-panel-inner {
-  position: relative;
-  width: 100%;
-  max-width: 728px;
-  padding-top: 24px;
-  padding-bottom: 24px;
+/* Font features as on the website, scoped to the module: the website's body
+   sets none (ours sets ss02/ss09/ss10 globally), and its .font-zero is only
+   zero + ss02 (ours repeats ss09/ss10). */
+.numbers-module {
+  /* Own background, colour and font so it drops into any page (homepage). */
   background: var(--color-black);
+  color: var(--color-gray-100);
+  font-family: var(--font-primary);
+  font-feature-settings: normal;
 }
 
-.numbers-panel-line {
+.numbers-module .font-zero {
+  font-feature-settings: 'zero' 1, 'ss02' 1;
+}
+
+/* Tabular figures so the count-up doesn't jitter in width. */
+.numbers-module .numbers-value {
+  font-feature-settings: 'zero' 1, 'ss02' 1, 'tnum' 1;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+/* Count-up: the final digits (hidden) and the counting digits share one
+   grid cell, so the box is always the final width. Right-aligned, so the
+   count grows leftwards like a counter and stays next to the suffix. */
+.numbers-value-digits {
+  display: inline-grid;
+  justify-items: end;
+}
+
+.numbers-value-digits > * {
+  grid-area: 1 / 1;
+}
+
+.numbers-value-sizer {
+  visibility: hidden;
+}
+
+/* .container (site.css) */
+.numbers-container {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+/* grid items-start gap-25 lg:grid-cols-2 lg:gap-2 */
+.numbers-grid {
+  display: grid;
+  align-items: start;
+  gap: 100px;
+}
+
+/* h-full w-full lg:max-w-90 xl:max-w-114 */
+.numbers-heading-col {
+  width: 100%;
+  height: 100%;
+}
+
+/* mb-3 text-sm text-white */
+.numbers-subtitle {
+  margin-bottom: 12px;
+  color: var(--color-white);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+
+/* "Hush." per-word reveal (RevealText, by="word"), set up like the title
+   below: line-height from .numbers-subtitle, masks top-aligned and moved
+   down by the engine's -7% end offset. */
+.numbers-subtitle .hero-line {
+  line-height: inherit;
+}
+
+.numbers-subtitle .hero-word-wrap {
+  position: relative;
+  top: 0.07em;
+  vertical-align: top;
+}
+
+/* Title modifier="h2". It asks for font-medium, but the website's unlayered
+   .heading { font-normal } beats Tailwind's layered utility, so it renders 400. */
+.numbers-title {
+  margin: 0;
+  font-weight: var(--font-weight-normal);
+}
+
+/* Title per-word reveal (RevealText, by="word"). The engine's typography
+   goes on `.hero-line` descendants: size and tracking already inherit from
+   .heading-2, only the line-height needs setting (engine default is 1.2). */
+.numbers-title .hero-line {
+  line-height: var(--leading-none);
+}
+
+/* Keep the revealed title exactly where the website's static title sits:
+   - vertical-align: top stops the word masks from adding extra space to
+     every line (word mode's inline-block clip boxes sit on the baseline);
+   - the engine ends each word at y: -7% of its line, so the mask moves
+     down by the same 0.07em. */
+.numbers-title .hero-word-wrap {
+  position: relative;
+  top: 0.07em;
+  vertical-align: top;
+}
+
+/* relative pl-15.5 lg:pt-30 lg:pl-0 xl:pt-20 2xl:pt-30 */
+.numbers-cards-wrapper {
+  position: relative;
+  padding-left: 62px;
+}
+
+/* relative grid w-full grid-cols-1 gap-24
+   lg:grid-rows-[repeat(var(--numcards),360px)] lg:gap-0 lg:pb-44
+   xl:grid-rows-[repeat(var(--numcards),544px)] xl:pb-30 2xl:pb-60 */
+.numbers-cards {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  gap: 96px;
+}
+
+/* pointer-events-none relative z-[index] bg-transparent pt-0
+   lg:sticky lg:top-20 lg:pt-[calc(var(--index)*80px)]
+   xl:top-30 xl:pt-[calc(var(--index)*100px)] 2xl:pt-[calc(var(--index)*120px)] */
+.numbers-card {
+  position: relative;
+  padding-top: 0;
+  background: transparent;
+  pointer-events: none;
+}
+
+/* pointer-events-auto relative flex w-full flex-col justify-between gap-8
+   bg-black pt-9 will-change-transform md:flex-row md:gap-5 lg:pt-8 */
+.numbers-card-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+  width: 100%;
+  padding-top: 36px;
+  background: var(--color-black);
+  pointer-events: auto;
+  will-change: transform;
+}
+
+/* absolute top-0 left-0 h-px w-full bg-linear-to-r from-white/30 to-black */
+.numbers-card-line {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 0.5px;
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
-  transform-origin: left center;
-  will-change: transform;
+  height: 1px;
+  background: linear-gradient(to right, rgb(255 255 255 / 0.3), var(--color-black));
 }
 
-.numbers-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
+/* shrink-0 */
+.numbers-card-content {
+  flex-shrink: 0;
+}
+
+/* font-zero text-7xl text-white md:tracking-[-0.02em] xl:text-8xl 2xl:text-9xl */
+.numbers-module {
+  /* Shared with the sticky-stack maths below (card height). */
+  --numbers-value-size: var(--text-7xl);
 }
 
 .numbers-value {
-  margin: 0;
-  color: var(--color-gray-100);
-  font-family: var(--font-primary);
-  font-weight: var(--font-weight-normal);
-  font-size: var(--text-9xl);
+  color: var(--color-white);
+  font-size: var(--numbers-value-size);
   line-height: var(--leading-none);
-  letter-spacing: var(--tracking-tight);
-  font-feature-settings: 'tnum' 1;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 
+/* Text mt-1.5 (.editor-text: gray-400; body: text-base leading-normal) */
 .numbers-description {
-  margin: 0;
+  margin-top: 6px;
   color: var(--color-gray-400);
-  font-family: var(--font-primary);
-}
-
-/* RevealText scopes typography via a `.block .hero-line` descendant
-   selector — see src/RevealText.tsx / src/index.css. */
-.numbers-description .hero-line {
   font-size: var(--text-base);
   line-height: var(--leading-normal);
-  letter-spacing: 0;
 }
 
-.numbers-footer {
-  background: var(--color-black);
+/* Description per-word reveal (RevealText, by="word"): line-height set
+   on the engine's lines (word mode sets the block to line-height 0), masks
+   top-aligned and moved down by the engine's -7% end offset. */
+.numbers-description .hero-line {
+  line-height: var(--leading-normal);
 }
 
-.numbers-footer-text {
+.numbers-description .hero-word-wrap {
   position: relative;
-  width: 100%;
-  margin: 0;
-  padding: 16px;
-  color: var(--color-gray-100);
-  font-family: var(--font-primary);
-  font-weight: var(--font-weight-normal);
+  top: 0.07lh;
+  vertical-align: top;
 }
 
-/* RevealText scopes typography via a `.block .hero-line` descendant
-   selector — see src/RevealText.tsx / src/index.css. */
-.numbers-footer-text .hero-line {
-  font-size: var(--text-6xl);
-  line-height: var(--leading-none);
-  letter-spacing: var(--tracking-tight);
+/* SectionMargin size="large" → Margin 320: h-40 lg:h-60 xl:h-80 */
+.numbers-section-margin {
+  height: 160px;
 }
 
-@media (max-width: 1100px) {
-  .numbers-panel {
-    padding-left: 96px;
+@media (min-width: 768px) {
+  .numbers-container { max-width: 720px; }
+
+  .numbers-card-inner {
+    flex-direction: row;
+    gap: 20px;
   }
+
+  .numbers-value { letter-spacing: -0.02em; }
 }
 
-@media (max-width: 767px) {
-  .numbers-panel {
-    padding-left: 24px;
-    padding-right: 24px;
-    padding-top: calc(200px + (var(--stack-index, 0) * 116px));
+@media (min-width: 1024px) {
+  .numbers-container { max-width: 960px; }
+
+  .numbers-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
-  .numbers-value {
-    font-size: 64px;
+  .numbers-heading-col { max-width: 360px; }
+
+  .numbers-grid { --numbers-title-top: 38vh; }
+
+  .numbers-heading-sticky {
+    position: sticky;
+    top: var(--numbers-title-top);
+    left: 0;
   }
 
-  .numbers-footer-text {
-    padding: 16px;
+  /* Change from the website (lg:pt-30 xl:pt-20 2xl:pt-30): the cards start
+     one "title scroll" down — the distance the title travels from entering
+     the viewport (where its reveal triggers) to pinning at its sticky top.
+     So the first number only scrolls in once the title has revealed and
+     pinned, instead of right under it while it is still animating. */
+  .numbers-cards-wrapper {
+    padding-top: calc(100vh - var(--numbers-title-top));
+    padding-left: 0;
   }
 
-  .numbers-footer-text .hero-line {
-    font-size: 32px;
+  .numbers-cards {
+    grid-template-rows: repeat(var(--numcards), 360px);
+    gap: 0;
+    padding-bottom: 176px;
   }
+
+  /* Change from the website (lg:top-20 xl:top-30): each card pins one
+     --numbers-card-step below the previous one, and the first card's pin
+     point is chosen so the finished stack (all cards pinned) sits centred
+     in the viewport:
+       stack height = (numcards - 1) × step + one card's visible height
+       card height  = inner padding-top + number line + mt-1.5 + one
+                      description line
+     Never higher than 16px under the header (SiteHeader at lg+: 20px
+     padding + 56px pill = 76px), for short viewports. */
+  .numbers-cards {
+    --numbers-header-bottom: 76px;
+    --numbers-card-step: 80px;
+    --numbers-card-height: calc(
+      32px + var(--numbers-value-size) + 6px + var(--text-base) * var(--leading-normal)
+    );
+    --numbers-stack-height: calc(
+      (var(--numcards) - 1) * var(--numbers-card-step) + var(--numbers-card-height)
+    );
+    --numbers-first-card-top: max(
+      calc(var(--numbers-header-bottom) + 16px),
+      calc(50vh - var(--numbers-stack-height) / 2)
+    );
+  }
+
+  .numbers-card {
+    position: sticky;
+    top: calc(var(--numbers-first-card-top) - var(--numbers-card-step));
+    padding-top: calc(var(--index) * var(--numbers-card-step));
+  }
+
+  .numbers-card-inner { padding-top: 32px; }
+
+  .numbers-section-margin { height: 240px; }
+}
+
+@media (min-width: 1280px) {
+  .numbers-container { max-width: 1280px; }
+
+  .numbers-heading-col { max-width: 456px; }
+
+  .numbers-grid { --numbers-title-top: 40vh; }
+
+  .numbers-cards {
+    grid-template-rows: repeat(var(--numcards), 544px);
+    padding-bottom: 120px;
+    --numbers-card-step: 100px;
+  }
+
+  .numbers-module { --numbers-value-size: var(--text-8xl); }
+
+  .numbers-section-margin { height: 320px; }
+}
+
+/* 3xl (container only) */
+@media (min-width: 1480px) {
+  .numbers-container { max-width: 1496px; }
+}
+
+@media (min-width: 1536px) {
+  .numbers-cards {
+    padding-bottom: 240px;
+    --numbers-card-step: 120px;
+  }
+
+  .numbers-module { --numbers-value-size: var(--text-9xl); }
 }

@@ -1,0 +1,44 @@
+/* Button styles for pages that contain a Button but aren't built with
+   Tailwind (homepage, /clients). Tailwind's theme + utilities only: no
+   global preflight and no global focus ring, which would restyle the rest
+   of the page (e.g. the navbar). The parts of preflight the Button relies on
+   are scoped to it below. */
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+@import './Button.styles.css';
+
+/* tailwindcss/preflight.css, scoped to the Button. */
+@layer base {
+	.t-button,
+	.t-button *,
+	.t-button ::before,
+	.t-button ::after {
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+		border: 0 solid;
+	}
+
+	.t-button {
+		font: inherit;
+		font-feature-settings: inherit;
+		font-variation-settings: inherit;
+		letter-spacing: inherit;
+		color: inherit;
+		border-radius: 0;
+		background-color: transparent;
+		opacity: 1;
+		appearance: button;
+	}
+
+	/* preflight `a { text-decoration: inherit }`, for <Button asChild><a></a></Button> */
+	a.t-button {
+		text-decoration: inherit;
+	}
+
+	.t-button :is(img, svg, video, canvas) {
+		display: block;
+		vertical-align: middle;
+	}
+}

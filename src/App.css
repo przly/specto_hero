@@ -1,9 +1,0 @@
-.next-section {
-  min-height: 60vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-almost-black);
-  color: var(--color-gray-400);
-  font-size: 15px;
-}

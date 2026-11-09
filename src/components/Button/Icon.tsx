@@ -1,12 +1,13 @@
 import type React from 'react';
 import cn from './cn';
 import ArrowRight from './icons/ArrowRight.svg?raw';
+import ChevronRight from './icons/ChevronRight.svg?raw';
 import Plus from './icons/Plus.svg?raw';
 import Search from './icons/search.svg?raw';
 
 // Ported from src/components/atoms/Icon/Icon.tsx. The source maps names to SVGR components through a generated
 // IconVariants file that isn't in the repo, so the SVGs the buttons use are inlined as raw markup instead.
-export const icons = { ArrowRight, Plus, Search };
+export const icons = { ArrowRight, ChevronRight, Plus, Search };
 
 export interface IconProps {
 	icon: keyof typeof icons;

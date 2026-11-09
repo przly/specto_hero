@@ -63,6 +63,19 @@ textarea {
   will-change: transform, opacity;
 }
 
+/* Only the spans that actually move (line mode: the inner line; word mode:
+   .hero-word) need their own compositor layer. The masks, word wraps,
+   spaces and the invisible measuring copy share the .hero-line class for
+   its typography only: without this, every one of them (hundreds on the
+   homepage) was promoted to a layer too, which Safari especially pays for
+   on every frame. */
+.hero-line-mask.hero-line,
+.hero-word-wrap.hero-line,
+.hero-word-space.hero-line,
+.line-measure .hero-line {
+  will-change: auto;
+}
+
 .specto-paragraph-word-mode {
   line-height: 0;
 }

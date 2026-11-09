@@ -9,6 +9,14 @@
 }
 
 /* Breathing room above the module so it isn't glued to the viewport top */
+/* The module carries its own background, colour and font so it drops into
+   any page (homepage). */
+.home-services {
+  background: var(--color-black);
+  color: var(--color-gray-100);
+  font-family: var(--font-primary);
+}
+
 .home-services-spacer {
   height: 96px;
 }
@@ -75,9 +83,11 @@
   color: var(--color-gray-100);
 }
 
+/* Title modifier="h3". It asks for font-medium, but the website's unlayered
+   .heading { font-normal } beats Tailwind's layered utility, so it renders 400. */
 .section-header-title {
   margin: 0;
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-normal);
 }
 
 .section-header-aside {
@@ -106,6 +116,33 @@
   .section-header-title-wrap { gap: 24px; }
   .section-header-arrow { margin-top: 14px; }
   .section-header-button { display: flex; }
+}
+
+/* Title + intro per-word reveal (RevealText, by="word"). The engine's
+   typography goes on `.hero-line` descendants, with each block's own
+   line-height set explicitly (word mode sets the block itself to
+   line-height 0, so it can't be inherited). vertical-align: top stops the
+   word masks adding space to every line, and the engine ends each word at
+   y: -7% of its line, so the masks move down by the same amount. */
+.section-header-title .hero-line {
+  line-height: var(--line-height-120); /* heading-3 */
+}
+
+.home-services-intro-text .hero-line {
+  line-height: var(--leading-normal); /* editor-text */
+}
+
+.section-header-title .hero-word-wrap {
+  position: relative;
+  top: 0.07lh;
+  vertical-align: top;
+}
+
+/* Intro paragraph per-line reveal: the engine ends each line at y: -7% of
+   its height, so move the masks down by the same amount. */
+.home-services-intro-text .hero-line-mask {
+  position: relative;
+  top: 0.07lh;
 }
 
 /* ---------- Intro ---------- */

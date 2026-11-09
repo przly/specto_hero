@@ -4,8 +4,9 @@ import './RouteSwitcher.css'
 export const ROUTES = [
   { path: '/', label: 'Home' },
   { path: '/links', label: 'Links' },
-  { path: '/navbar', label: 'Navbar' },
+  { path: '/navbar', label: 'Site header' },
   { path: '/numbers', label: 'Numbers' },
+  { path: '/clients', label: 'Clients slider' },
   { path: '/logo-shader', label: 'Logo shader' },
   { path: '/home-services', label: 'Home services' },
   { path: '/service-card', label: 'Service card' },
