@@ -78,11 +78,19 @@ export default function SiteFooter() {
     offset: ['start end', 'end end'],
   })
 
-  const y = useTransform(scrollYProgress, [0, 1], isDesktop ? ['-75%', '0%'] : ['0%', '0%'])
+  // A full transform string mapped straight from the progress: with this
+  // offset (the "entry" range), Motion runs it as a native scroll-driven
+  // animation on the compositor where supported, in step with the scroll.
+  // (`y` would update from scroll events on the main thread, a frame behind.)
+  const transform = useTransform(
+    scrollYProgress,
+    [0, 1],
+    isDesktop ? ['translateY(-75%)', 'translateY(0%)'] : ['translateY(0%)', 'translateY(0%)'],
+  )
 
   return (
     <footer className="site-footer" ref={footerRef}>
-      <motion.div style={{ y }} className="site-footer-container">
+      <motion.div style={{ transform }} className="site-footer-container">
         <div className="site-footer-grid">
           {COLS.map((col, index) => (
             <div className="site-footer-col" key={`footer-col-${index}`}>
