@@ -4,11 +4,9 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 
-// Distinct favicon + tab title in local dev so a localhost tab is never
-// mistaken for prod.
+// Distinct tab title in local dev so a localhost tab is never mistaken for
+// prod (the dev favicon is set in the HTML by vite.config.ts).
 if (import.meta.env.DEV) {
-  const favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
-  if (favicon) favicon.href = '/favicon-dev.png'
   document.title = `${document.title} [Local]`
 }
 
