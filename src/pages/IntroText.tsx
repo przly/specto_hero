@@ -39,7 +39,7 @@ const TITLE_2 =
   'We turn your ideas into digital products from zero to launch by combining strategy, design & development all under one roof.'
 
 export function IntroTextModule() {
-  // Trigger line + replay-on-scroll-up from the dev trigger panel.
+  // Trigger line + replay-on-scroll-up.
   const [ref, visible] = useTestReveal<HTMLDivElement>()
   // Title 1's detected line count, so title 2's lines continue its stagger.
   const [title1Lines, setTitle1Lines] = useState(0)
@@ -67,7 +67,9 @@ export function IntroTextModule() {
     if (!visible || !arrow || !inner || !line) return
     if (prefersReducedMotion()) return
 
-    const indent = parseFloat(getComputedStyle(inner).getPropertyValue('--intro-indent')) || 0
+    // The first line's resolved text-indent (--intro-indent, which can be a
+    // calc() of --px on wide screens).
+    const indent = parseFloat(getComputedStyle(line).textIndent) || 0
     // offsetLeft/offsetWidth ignore the CSS start translate, so this is the
     // arrow's resting right edge in the viewport (+ slack for its 45° turn
     // on mobile): moving it back by that puts it just out of view.

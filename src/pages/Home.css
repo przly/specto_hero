@@ -19,14 +19,14 @@
   left: 0;
   z-index: 1;
   width: 100%;
-  height: 24px;
-  border-radius: 0 0 16px 16px;
+  height: calc(24 * var(--px));
+  border-radius: 0 0 calc(16 * var(--px)) calc(16 * var(--px));
   background: var(--color-black);
   pointer-events: none;
 }
 
 @media (min-width: 1024px) {
-  .home-main::before { border-radius: 0 0 24px 24px; }
+  .home-main::before { border-radius: 0 0 calc(24 * var(--px)) calc(24 * var(--px)); }
 }
 
 /* Shared by the homepage modules ported from specto-website
@@ -38,30 +38,30 @@
   width: 100%;
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: 16px;
+  padding-inline: calc(16 * var(--px));
 }
 
 /* SectionMargin "default" → Margin 200: block w-full h-24 lg:h-50 */
 .section-margin-default {
   display: block;
   width: 100%;
-  height: 96px;
+  height: calc(96 * var(--px));
 }
 
 @media (min-width: 768px) {
-  .home-container { max-width: 720px; }
+  .home-container { max-width: calc(720 * var(--px)); }
 }
 
 @media (min-width: 1024px) {
-  .home-container { max-width: 960px; }
-  .section-margin-default { height: 200px; }
+  .home-container { max-width: calc(960 * var(--px)); }
+  .section-margin-default { height: calc(200 * var(--px)); }
 }
 
 @media (min-width: 1280px) {
-  .home-container { max-width: 1280px; }
+  .home-container { max-width: calc(1280 * var(--px)); }
 }
 
 /* 3xl = 92.5rem */
 @media (min-width: 1480px) {
-  .home-container { max-width: 1496px; }
+  .home-container { max-width: calc(1496 * var(--px)); }
 }

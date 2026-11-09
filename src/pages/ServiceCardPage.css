@@ -17,33 +17,33 @@
   display: grid;
   align-content: start;
   margin-inline: auto;
-  padding-inline: 16px;
+  padding-inline: calc(16 * var(--px));
 }
 
 @media (min-width: 768px) {
-  .service-card-page-container { max-width: 720px; }
+  .service-card-page-container { max-width: calc(720 * var(--px)); }
 }
 
 @media (min-width: 1024px) {
-  .service-card-page-container { max-width: 960px; }
+  .service-card-page-container { max-width: calc(960 * var(--px)); }
 }
 
 @media (min-width: 1280px) {
   /* One row of cards: center it in the viewport. */
   .service-card-page-container {
-    max-width: 1280px;
+    max-width: calc(1280 * var(--px));
     align-content: center;
   }
 }
 
 @media (min-width: 1480px) {
-  .service-card-page-container { max-width: 1496px; }
+  .service-card-page-container { max-width: calc(1496 * var(--px)); }
 }
 
 .service-card-page-grid {
   display: grid;
-  column-gap: 8px;
-  row-gap: 48px;
+  column-gap: calc(8 * var(--px));
+  row-gap: calc(48 * var(--px));
 }
 
 @media (min-width: 768px) {
@@ -60,7 +60,7 @@
   place-items: center;
   min-height: 100vh;
   min-height: 100svh;
-  padding-inline: 16px;
+  padding-inline: calc(16 * var(--px));
 }
 
 .service-card-page-hint {

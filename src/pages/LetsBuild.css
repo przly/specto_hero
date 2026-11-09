@@ -32,7 +32,7 @@
   position: relative;
   display: block;
   width: 100%;
-  max-width: 636px;
+  max-width: calc(636 * var(--px));
   pointer-events: none;
 }
 
@@ -54,7 +54,7 @@
 }
 
 @media (min-width: 1024px) {
-  .lets-build-image { margin-left: 40px; }
+  .lets-build-image { margin-left: calc(40 * var(--px)); }
 }
 
 @media (min-width: 1280px) {

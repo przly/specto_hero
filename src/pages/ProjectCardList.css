@@ -20,7 +20,7 @@
 .pcl-header-main {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: calc(16 * var(--px));
   color: var(--color-gray-100);
 }
 
@@ -28,8 +28,8 @@
 .pcl-header-title-row {
   display: flex;
   align-items: flex-start;
-  gap: 26px;
-  max-width: 488px;
+  gap: calc(26 * var(--px));
+  max-width: calc(488 * var(--px));
 }
 
 /* Title per-word reveal (RevealText, by="word"), set up like the Services
@@ -51,8 +51,8 @@
 .pcl-header-arrow {
   display: block;
   flex-shrink: 0;
-  width: 20px;
-  margin-top: 8px;
+  width: calc(20 * var(--px));
+  margin-top: calc(8 * var(--px));
 }
 
 .pcl-header-arrow svg {
@@ -88,8 +88,8 @@
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  column-gap: 8px;
-  row-gap: 40px;
+  column-gap: calc(8 * var(--px));
+  row-gap: calc(40 * var(--px));
 }
 
 /* mt-10 text-right; only below lg */
@@ -116,7 +116,7 @@
   /* overflow-hidden moved to the img wrapper: clipping here would also clip
      the 0.5px stroke (::after) and its anti-aliasing would erase it along
      the rounded corners. */
-  border-radius: 8px;
+  border-radius: calc(8 * var(--px));
   aspect-ratio: 376 / 384;
 }
 
@@ -235,16 +235,16 @@
 }
 
 @media (min-width: 768px) {
-  .pcl-header-title-row { gap: 32px; }
+  .pcl-header-title-row { gap: calc(32 * var(--px)); }
 
   .pcl-header-arrow {
-    width: 32px;
-    margin-top: 6px;
+    width: calc(32 * var(--px));
+    margin-top: calc(6 * var(--px));
   }
 
   .pcl-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    row-gap: 48px;
+    row-gap: calc(48 * var(--px));
   }
 
   .project-card-media { aspect-ratio: 484 / 495; }
@@ -260,9 +260,9 @@
     justify-content: space-between;
   }
 
-  .pcl-header-main { gap: 24px; }
+  .pcl-header-main { gap: calc(24 * var(--px)); }
 
-  .pcl-header-arrow { margin-top: 14px; }
+  .pcl-header-arrow { margin-top: calc(14 * var(--px)); }
 
   .pcl-header-button { display: block; }
 

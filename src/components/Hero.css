@@ -22,7 +22,7 @@
 }
 
 .hero-copy-image {
-  width: min(898px, 80vw);
+  width: min(calc(898 * var(--px)), 80vw);
   height: auto;
   will-change: transform;
 }

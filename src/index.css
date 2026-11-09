@@ -10,6 +10,22 @@
   --mask-space: 0.65em;
 }
 
+/* One design pixel. The layout is designed at 1512px wide: up to there
+   --px is 1px; on wider screens it grows with the viewport, so layout
+   (containers, spacing, gaps, cards, media) scales up in proportion.
+   Font sizes, buttons, links, the navbar and icons next to text stay in
+   plain px, so they keep their designed size. Use calc(N * var(--px)) for
+   layout lengths, plain px for anything that sits with the text. */
+:root {
+  --px: 1px;
+}
+
+@media (min-width: 1513px) {
+  :root {
+    --px: calc(100vw / 1512);
+  }
+}
+
 *,
 *::before,
 *::after {

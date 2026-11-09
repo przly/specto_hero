@@ -18,7 +18,7 @@
 }
 
 .home-services-spacer {
-  height: 96px;
+  height: calc(96 * var(--px));
 }
 
 /* ---------- .container (site.css) ---------- */
@@ -26,23 +26,23 @@
   width: 100%;
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: 16px;
+  padding-inline: calc(16 * var(--px));
 }
 
 @media (min-width: 768px) {
-  .container { max-width: 720px; }
+  .container { max-width: calc(720 * var(--px)); }
 }
 
 @media (min-width: 1024px) {
-  .container { max-width: 960px; }
+  .container { max-width: calc(960 * var(--px)); }
 }
 
 @media (min-width: 1280px) {
-  .container { max-width: 1280px; }
+  .container { max-width: calc(1280 * var(--px)); }
 }
 
 @media (min-width: 1480px) {
-  .container { max-width: 1496px; }
+  .container { max-width: calc(1496 * var(--px)); }
 }
 
 /* ---------- Module grid ---------- */
@@ -71,15 +71,15 @@
 .section-header-title-row {
   display: flex;
   align-items: flex-start;
-  gap: 26px;
-  max-width: 488px;
+  gap: calc(26 * var(--px));
+  max-width: calc(488 * var(--px));
 }
 
 .section-header-arrow {
   flex-shrink: 0;
-  width: 20px;
+  width: calc(20 * var(--px));
   height: auto;
-  margin-top: 8px;
+  margin-top: calc(8 * var(--px));
   color: var(--color-gray-100);
 }
 
@@ -100,10 +100,10 @@
 }
 
 @media (min-width: 768px) {
-  .section-header-title-row { gap: 32px; }
+  .section-header-title-row { gap: calc(32 * var(--px)); }
   .section-header-arrow {
-    width: 32px;
-    margin-top: 6px;
+    width: calc(32 * var(--px));
+    margin-top: calc(6 * var(--px));
   }
 }
 
@@ -114,7 +114,7 @@
     justify-content: space-between;
   }
   .section-header-title-wrap { gap: 24px; }
-  .section-header-arrow { margin-top: 14px; }
+  .section-header-arrow { margin-top: calc(14 * var(--px)); }
   .section-header-button { display: flex; }
 }
 
@@ -162,14 +162,14 @@
 }
 
 @media (min-width: 1024px) {
-  .home-services-intro-text { max-width: 360px; }
+  .home-services-intro-text { max-width: calc(360 * var(--px)); }
   .home-services-mobile-button { display: none; }
 }
 
 /* ---------- Items ---------- */
 .home-services-items {
   display: grid;
-  column-gap: 8px;
+  column-gap: calc(8 * var(--px));
   row-gap: 48px;
   margin-top: 48px;
 }
@@ -190,11 +190,11 @@
 
 /* ---------- SectionMargin default (Margin 200: h-24 lg:h-50) ---------- */
 .section-margin-default {
-  height: 96px;
+  height: calc(96 * var(--px));
 }
 
 @media (min-width: 1024px) {
-  .section-margin-default { height: 200px; }
+  .section-margin-default { height: calc(200 * var(--px)); }
 }
 
 /* ---------- Button primary / default size ---------- */

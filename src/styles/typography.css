@@ -74,6 +74,18 @@
   .heading-1 { font-size: var(--text-8xl); }
 }
 
+/* Wider than the 1512px design: titles (heading-1 to 3) grow with the
+   layout (--px, index.css); smaller headings and body text keep their size. */
+@media (min-width: 1513px) {
+  .heading-1 { font-size: calc(72 * var(--px)); }
+  .heading-2 { font-size: calc(60 * var(--px)); }
+  .heading-3 { font-size: calc(48 * var(--px)); }
+}
+
+@media (min-width: 1536px) {
+  .heading-1 { font-size: calc(96 * var(--px)); }
+}
+
 /* Body copy — the website's default `text-base leading-normal text-gray-400` */
 .text-body {
   font-family: var(--font-primary);

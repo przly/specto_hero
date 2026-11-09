@@ -31,7 +31,7 @@
 .service-card-image {
   display: block;
   width: 100%;
-  max-width: 200px;
+  max-width: calc(200 * var(--px));
   height: auto;
   object-fit: contain;
 }
@@ -54,7 +54,7 @@
 /* Text (.editor-text) className="pr-5" */
 .service-card-text {
   margin: 0;
-  padding-right: 20px;
+  padding-right: calc(20 * var(--px));
   color: var(--color-gray-400);
   font-size: var(--text-base);
   line-height: var(--leading-normal);

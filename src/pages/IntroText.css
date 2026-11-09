@@ -87,14 +87,14 @@
 
 /* h-6 lg:hidden */
 .intro-text-gap {
-  height: 24px;
+  height: calc(24 * var(--px));
 }
 
 @media (min-width: 768px) {
   .intro-text-icon {
     position: absolute;
-    top: 12px;
-    width: 28px;
+    top: calc(12 * var(--px));
+    width: calc(28 * var(--px));
     rotate: 0deg;
   }
 
@@ -117,15 +117,16 @@
 @media (min-width: 1280px) {
   /* heading-2 xl:text-6xl (the max-[1280px] override stops at 1280px) */
   .intro-text-title {
-    font-size: var(--text-6xl);
+    /* text-6xl (60px), growing with the layout past 1512px (--px) */
+    font-size: calc(60 * var(--px));
     line-height: 1; /* Tailwind text-6xl line-height */
   }
 
   /* xl:first:indent-28 */
-  .intro-text-inner { --intro-indent: 112px; }
+  .intro-text-inner { --intro-indent: calc(112 * var(--px)); }
 }
 
 @media (min-width: 1536px) {
   /* 2xl:first:indent-82 */
-  .intro-text-inner { --intro-indent: 328px; }
+  .intro-text-inner { --intro-indent: calc(328 * var(--px)); }
 }

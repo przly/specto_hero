@@ -16,7 +16,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: calc(32 * var(--px));
   padding-block: 32px;
 }
 
@@ -38,7 +38,7 @@
 .logo-row-fade {
   position: absolute;
   top: 0;
-  width: 32px;
+  width: calc(32 * var(--px));
   height: 100%;
 }
 
@@ -73,8 +73,8 @@
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 60px;
-  padding-right: 60px;
+  gap: calc(60 * var(--px));
+  padding-right: calc(60 * var(--px));
 }
 
 /* flex shrink-0 items-center justify-center */
@@ -89,7 +89,7 @@
 .logo-img {
   display: block;
   width: auto;
-  height: 32px;
+  height: calc(32 * var(--px));
   object-fit: contain;
   user-select: none;
 }
@@ -107,16 +107,16 @@
   .logo-carousel-title { margin-bottom: 0; }
 
   .logo-carousel-rows {
-    gap: 64px;
+    gap: calc(64 * var(--px));
     padding-block: 64px;
   }
 
-  .logo-row-fade { width: 96px; }
+  .logo-row-fade { width: calc(96 * var(--px)); }
 
   .logo-set {
-    gap: 120px;
-    padding-right: 120px;
+    gap: calc(120 * var(--px));
+    padding-right: calc(120 * var(--px));
   }
 
-  .logo-img { height: 58px; }
+  .logo-img { height: calc(58 * var(--px)); }
 }
