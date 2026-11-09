@@ -26,7 +26,8 @@ import './Clients.css'
 
    Motion polish (emil-design-eng review), also changes from the website:
    - a click / swipe reveals faster than autoplay (user waiting vs. ambient);
-   - autoplay waits until the slider is first scrolled into view and pauses
+   - the first testimonial reveals with the title, autoplay waits until
+     both have finished revealing, and it pauses
      while the tab is hidden (not on hover). The current progress bar's own animation is the autoplay timer,
      so bar and slide change can't drift;
    - bars animate scaleX (compositor) instead of width;
@@ -134,9 +135,13 @@ function ClientCard({
   text,
   active,
   timing,
-}: ClientCardProps & { active: boolean; timing: RevealTiming }) {
+  onTextLinesChange,
+}: ClientCardProps & { active: boolean; timing: RevealTiming; onTextLinesChange?: (count: number) => void }) {
   // Chain the stagger: name and role continue after the quote's last line.
   const [textLines, setTextLines] = useState(0)
+  useEffect(() => {
+    onTextLinesChange?.(textLines)
+  }, [textLines, onTextLinesChange])
   const reveal = { ...timing, delay: ENTER_DELAY, exit: EXIT, isTriggered: active }
 
   return (
@@ -159,10 +164,14 @@ export function ClientsModule() {
   // Set by click / swipe / keyboard just before Embla selects, so that
   // selection reveals with the faster user timing.
   const userNavRef = useRef(false)
-  // Title and first testimonial reveal at the trigger line (and replay on
-  // scroll up when that's on in the dev trigger panel).
+  // The title and the first testimonial reveal together when the title
+  // crosses the trigger line (and replay on scroll up when that's on in the
+  // dev trigger panel).
   const [titleRef, titleVisible] = useTestReveal<HTMLDivElement>()
-  const [sliderRef, sliderInView] = useTestReveal<HTMLDivElement>()
+  const [titleWords, setTitleWords] = useState(0)
+  const [firstCardLines, setFirstCardLines] = useState(0)
+  // True once every line of that first reveal has finished animating.
+  const [introDone, setIntroDone] = useState(false)
 
   const isMobile = useMedia('(max-width: 1023px)', true)
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -171,9 +180,9 @@ export function ClientsModule() {
   const reduceMotion = useReducedMotion()
   const [revealTiming, setRevealTiming] = useState(REVEAL_AMBIENT)
   const pageHidden = usePageHidden()
-  // Autoplay waits until the slider has scrolled into view, so the first
-  // testimonial is the one that reveals when you first reach it.
-  const paused = pageHidden || !sliderInView
+  // Autoplay (and the first progress bar) waits until the title and the
+  // first testimonial have finished revealing.
+  const paused = pageHidden || !introDone
 
   const x = useMotionValue(0)
   const y = useMotionValue(0)
@@ -283,6 +292,19 @@ export function ClientsModule() {
     }
   }, [emblaApi, selectedIndex])
 
+  // Intro end: the later of the title's last word and the first card's last
+  // line (its role, chained after the quote and name) finishing.
+  useEffect(() => {
+    if (!titleVisible) {
+      setIntroDone(false)
+      return
+    }
+    const titleEnd = (TITLE_DURATION + Math.max(titleWords - 1, 0) * TITLE_WORD_STAGGER) / REVEAL_SPEED
+    const cardEnd = ENTER_DELAY + REVEAL_AMBIENT.duration + (firstCardLines + 1) * REVEAL_AMBIENT.stagger
+    const id = window.setTimeout(() => setIntroDone(true), Math.max(titleEnd, cardEnd) * 1000)
+    return () => window.clearTimeout(id)
+  }, [titleVisible, titleWords, firstCardLines])
+
   // Pause while the tab is hidden or the slider hasn't been scrolled to yet.
   // Hovering the quote doesn't pause it.
   useEffect(() => {
@@ -296,10 +318,10 @@ export function ClientsModule() {
   // back to the first testimonial with a fresh timer, out of sight, so the
   // next scroll down reveals it again from the start.
   useEffect(() => {
-    if (sliderInView || !emblaApi) return
+    if (titleVisible || !emblaApi) return
     emblaApi.scrollTo(0, true)
     if (timerRef.current) timerRef.current.currentTime = 0
-  }, [sliderInView, emblaApi])
+  }, [titleVisible, emblaApi])
 
   // RevealText fills each card after measuring its lines, and re-splits on
   // resize, so card heights change after Embla has measured them. Embla only
@@ -354,11 +376,12 @@ export function ClientsModule() {
                 stagger={TITLE_WORD_STAGGER / REVEAL_SPEED}
                 isTriggered={titleVisible}
                 hideDelay={0}
+                onCountChange={setTitleWords}
               />
             </div>
           </div>
 
-          <div className="clients-slider-col" ref={sliderRef}>
+          <div className="clients-slider-col">
             <div className="clients-bars">
               {CARDS.map((_, index) => (
                 <div key={index} className="clients-bar">
@@ -382,8 +405,9 @@ export function ClientsModule() {
                     <div className="clients-slide" key={`client-card-${index}`}>
                       <ClientCard
                         {...card}
-                        active={sliderInView && index === selectedIndex}
+                        active={titleVisible && index === selectedIndex}
                         timing={revealTiming}
+                        onTextLinesChange={index === 0 ? setFirstCardLines : undefined}
                       />
                     </div>
                   ))}
