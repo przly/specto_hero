@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type PointerEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type PointerEvent } from 'react'
 import autoHeight from 'embla-carousel-auto-height'
 import classNames from 'embla-carousel-class-names'
 import fade from 'embla-carousel-fade'
 import useEmblaCarousel from 'embla-carousel-react'
-import { motion, useMotionValue, useReducedMotion } from 'motion/react'
+import { createPortal } from 'react-dom'
+import { motion, useReducedMotion } from 'motion/react'
 import Button from '../components/Button/Button'
 import { RevealText } from '../RevealText'
 import { REVEAL_SPEED, useTestReveal } from '../components/revealTrigger'
@@ -32,7 +33,7 @@ import './Clients.css'
      so bar and slide change can't drift;
    - bars animate scaleX (compositor) instead of width;
    - the Next button (our default-size Button) follows the cursor 1:1,
-     scales up from 0.4 on hover in and back down on hover out (not from /
+     scales up from 0.2 on hover in and back down on hover out (not from /
      to 0), and presses to 0.95. */
 
 type ClientCardProps = {
@@ -84,18 +85,18 @@ const EXIT = { duration: 0.28, stagger: 0.015 }
 const ENTER_DELAY = 0.12
 
 // Next button: the cursor grows into it on hover in and shrinks back out on
-// hover out (from / to 40%, never from 0), quicker out than in. Strong
+// hover out (from / to 20%, never from 0), quicker out than in. Strong
 // ease-out; the button is centred on the cursor, so it scales from there.
 const EASE_OUT = [0.23, 1, 0.32, 1] as const
-const CURSOR_HIDDEN_SCALE = 0.4
+const CURSOR_HIDDEN_SCALE = 0.2
 const CURSOR_PRESSED_SCALE = 0.95
 // Per phase: scale and opacity timed separately. Opacity lands first, so the
 // button reads as a solid object growing / shrinking rather than a ghost
 // fading (the native cursor hides instantly, so a slow fade leaves a gap).
 type CursorPhase = 'out' | 'in' | 'press' | 'release'
 const CURSOR_TRANSITIONS: Record<CursorPhase, { transform: object; opacity: object }> = {
-  in: { transform: { duration: 0.25, ease: EASE_OUT }, opacity: { duration: 0.12, ease: EASE_OUT } },
-  out: { transform: { duration: 0.18, ease: EASE_OUT }, opacity: { duration: 0.15, ease: EASE_OUT } },
+  in: { transform: { duration: 0.6, ease: EASE_OUT }, opacity: { duration: 0.29, ease: EASE_OUT } },
+  out: { transform: { duration: 0.43, ease: EASE_OUT }, opacity: { duration: 0.36, ease: EASE_OUT } },
   // Press and release are both quick: letting go should feel as snappy as pressing.
   press: { transform: { duration: 0.15, ease: EASE_OUT }, opacity: { duration: 0.15, ease: EASE_OUT } },
   release: { transform: { duration: 0.15, ease: EASE_OUT }, opacity: { duration: 0.15, ease: EASE_OUT } },
@@ -184,8 +185,8 @@ export function ClientsModule() {
   // first testimonial have finished revealing.
   const paused = pageHidden || !introDone
 
-  const x = useMotionValue(0)
-  const y = useMotionValue(0)
+  // The Next button, rendered fixed to the viewport (see the cursor effect).
+  const cursorRef = useRef<HTMLDivElement>(null)
 
   // Embla Carousel Setup
   const plugins = useMemo(() => {
@@ -218,27 +219,84 @@ export function ClientsModule() {
     emblaApi.scrollNext()
   }
 
-  // Cursor
-  const handleMove = (e: MouseEvent) => {
-    const rect = containerRef.current?.getBoundingClientRect()
-    if (!rect) return
+  // Cursor. One window-level listener decides both where the Next button is
+  // and whether it shows, so the two can't disagree:
+  // - the button is position: fixed and follows the pointer's client
+  //   coordinates, written straight to its transform in the pointermove
+  //   handler (no React render, no frame of lag). Scrolling doesn't move it;
+  // - hover is "the element under the pointer is inside the cursor area",
+  //   from the event target on move, and re-checked once per frame on
+  //   scroll, since scrolling moves the module under a still pointer
+  //   without firing any pointer events.
+  const hoveringRef = useRef(false)
+  useEffect(() => {
+    let pointer: { x: number; y: number } | null = null
+    let frame: number | null = null
+    // Half the button's size, for centring it on the pointer in whole pixels.
+    // translate(-50%, -50%) of the 43px-tall button lands on half pixels:
+    // the pill's edges blur across two pixels while the label snaps to one,
+    // so the text reads off-centre.
+    let half = { x: 0, y: 0 }
+    const cursorEl = cursorRef.current
+    const sizeObserver = new ResizeObserver(([entry]) => {
+      const box = entry.borderBoxSize[0]
+      half = { x: (box?.inlineSize ?? entry.contentRect.width) / 2, y: (box?.blockSize ?? entry.contentRect.height) / 2 }
+      if (pointer) place(pointer)
+    })
+    if (cursorEl) sizeObserver.observe(cursorEl)
 
-    x.set(e.clientX - rect.left)
-    y.set(e.clientY - rect.top)
-  }
+    const place = ({ x, y }: { x: number; y: number }) => {
+      if (cursorEl) cursorEl.style.transform = `translate3d(${Math.round(x - half.x)}px, ${Math.round(y - half.y)}px, 0)`
+    }
 
-  const handleEnter = (e: PointerEvent) => {
-    if (!isHoverPointer(e)) return
-    handleMove(e)
-    setIsHovering(true)
-    setCursorPhase('in')
-  }
+    const setHover = (inside: boolean) => {
+      if (inside === hoveringRef.current) return
+      hoveringRef.current = inside
+      // The native cursor hides only while hovering (CSS on [data-hover]),
+      // toggled here, synchronously. Browsers re-pick the cursor on mouse
+      // moves, not on scroll, but they also do when an element's `cursor`
+      // value changes, so this flip swaps it under a still pointer too.
+      const area = containerRef.current
+      if (area) {
+        if (inside) area.dataset.hover = ''
+        else delete area.dataset.hover
+      }
+      setIsHovering(inside)
+      setCursorPhase(inside ? 'in' : 'out')
+    }
+    const isInArea = (target: EventTarget | Element | null) =>
+      !!target && !!containerRef.current?.contains(target as Node)
 
-  const handleLeave = (e: PointerEvent) => {
-    if (!isHoverPointer(e)) return
-    setIsHovering(false)
-    setCursorPhase('out')
-  }
+    const onPointerMove = (e: globalThis.PointerEvent) => {
+      // Touch has no hover.
+      if (e.pointerType === 'touch') return
+      pointer = { x: e.clientX, y: e.clientY }
+      place(pointer)
+      setHover(isInArea(e.target))
+    }
+    const onLeaveWindow = () => {
+      pointer = null
+      setHover(false)
+    }
+    const sync = () => {
+      frame = null
+      if (pointer) setHover(isInArea(document.elementFromPoint(pointer.x, pointer.y)))
+    }
+    const onScroll = () => {
+      if (frame === null) frame = requestAnimationFrame(sync)
+    }
+
+    window.addEventListener('pointermove', onPointerMove, { passive: true })
+    document.documentElement.addEventListener('pointerleave', onLeaveWindow)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove)
+      document.documentElement.removeEventListener('pointerleave', onLeaveWindow)
+      window.removeEventListener('scroll', onScroll)
+      if (frame !== null) cancelAnimationFrame(frame)
+      sizeObserver.disconnect()
+    }
+  }, [])
 
   const cursorScale =
     reduceMotion || cursorPhase === 'in' || cursorPhase === 'release'
@@ -416,12 +474,9 @@ export function ClientsModule() {
 
               <div
                 className="clients-cursor-area"
-                onPointerMove={(e) => isHoverPointer(e) && handleMove(e)}
                 ref={containerRef}
                 role="button"
                 tabIndex={0}
-                onPointerEnter={handleEnter}
-                onPointerLeave={handleLeave}
                 onPointerDown={(e) => isHoverPointer(e) && setCursorPhase('press')}
                 onPointerUp={(e) => isHoverPointer(e) && setCursorPhase('release')}
                 onClick={goNext}
@@ -432,34 +487,28 @@ export function ClientsModule() {
                   }
                 }}
               >
-                {/* Outer: follows the cursor 1:1. Inner: appear / disappear /
-                    press as a full transform string (compositor), centred
-                    on the cursor so it grows from the pointer. Both have
-                    pointer-events: none, so the area gets the click and
-                    drives the press. */}
-                <motion.div
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: 0,
-                    x,
-                    y,
-                    translateX: '-50%',
-                    translateY: '-50%',
-                  }}
-                  className="clients-cursor"
-                >
-                  <motion.div
-                    initial={{ transform: `scale(${reduceMotion ? 1 : CURSOR_HIDDEN_SCALE})`, opacity: 0 }}
-                    animate={{
-                      transform: `scale(${cursorScale})`,
-                      opacity: isHovering ? 1 : 0,
-                    }}
-                    transition={CURSOR_TRANSITIONS[cursorPhase]}
-                  >
-                    <Button rightIcon="ChevronRight" isParentHover={isHovering} title={NEXT_BUTTON} />
-                  </motion.div>
-                </motion.div>
+                {/* Outer: fixed to the viewport, follows the pointer 1:1
+                    (transform written by the cursor effect). Portalled to
+                    <body> so no transformed ancestor can turn `fixed` into
+                    `absolute`. Inner: appear / disappear / press as a full
+                    transform string (compositor), centred on the pointer so
+                    it grows from there. pointer-events: none, so the area
+                    gets the click and drives the press. */}
+                {createPortal(
+                  <div ref={cursorRef} className="clients-cursor" aria-hidden="true">
+                    <motion.div
+                      initial={{ transform: `scale(${reduceMotion ? 1 : CURSOR_HIDDEN_SCALE})`, opacity: 0 }}
+                      animate={{
+                        transform: `scale(${cursorScale})`,
+                        opacity: isHovering ? 1 : 0,
+                      }}
+                      transition={CURSOR_TRANSITIONS[cursorPhase]}
+                    >
+                      <Button rightIcon="ChevronRight" isParentHover={isHovering} title={NEXT_BUTTON} />
+                    </motion.div>
+                  </div>,
+                  document.body,
+                )}
               </div>
             </div>
           </div>

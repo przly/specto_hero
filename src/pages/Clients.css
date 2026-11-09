@@ -146,6 +146,12 @@
   display: none;
   width: 100%;
   height: 100%;
+}
+
+/* Set from Clients.tsx with the hover state (see setHover there): a
+   changing `cursor` value makes the browser update the cursor even when the
+   page scrolls under a still pointer, which a static cursor: none doesn't. */
+.clients-cursor-area[data-hover] {
   cursor: none;
 }
 
@@ -157,10 +163,27 @@
   box-shadow: none;
 }
 
-/* pointer-events-none z-50 */
+/* pointer-events-none z-50. Portalled to <body> and fixed to the viewport
+   (Clients.tsx positions it), so it takes the module's font and colour
+   itself. */
 .clients-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
   z-index: 50;
   pointer-events: none;
+  will-change: transform;
+  color: var(--color-gray-100);
+  font-family: var(--font-primary);
+  font-feature-settings: normal;
+}
+
+/* Flex, not block: the inline-flex Button in a block would sit on a text
+   line, adding the strut's descender space under it and pulling the box
+   (and so the centring) off the button. */
+.clients-cursor,
+.clients-cursor > div {
+  display: flex;
 }
 
 /* ClientCard: w-full pt-11 text-white */
