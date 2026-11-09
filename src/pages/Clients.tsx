@@ -6,7 +6,7 @@ import useEmblaCarousel from 'embla-carousel-react'
 import { createPortal } from 'react-dom'
 import { motion, useReducedMotion } from 'motion/react'
 import Button from '../components/Button/Button'
-import { RevealText } from '../RevealText'
+import { RevealText, easeExpoOut } from '../RevealText'
 import { REVEAL_SPEED, useTestReveal } from '../components/revealTrigger'
 // Button styles are Tailwind; injected only while this page is mounted (same
 // as ButtonsPage) so Tailwind's base layer doesn't leak into other pages.
@@ -83,6 +83,11 @@ const EXIT = { duration: 0.28, stagger: 0.015 }
 // The exit's ease-out front-loads it: the old first line is ~90% out by
 // ~0.12s, so the new card starts then without the two overlapping.
 const ENTER_DELAY = 0.12
+
+// Progress-bar lines: the whole row draws in as one line growing left to
+// right (clip-path wipe, so it crosses the gaps), with the first
+// testimonial, on its timing and ease.
+const BARS_IN = { duration: REVEAL_AMBIENT.duration, delay: ENTER_DELAY }
 
 // Next button: the cursor grows into it on hover in and shrinks back out on
 // hover out (from / to 20%, never from 0), quicker out than in. Strong
@@ -359,7 +364,8 @@ export function ClientsModule() {
     }
     const titleEnd = (TITLE_DURATION + Math.max(titleWords - 1, 0) * TITLE_WORD_STAGGER) / REVEAL_SPEED
     const cardEnd = ENTER_DELAY + REVEAL_AMBIENT.duration + (firstCardLines + 1) * REVEAL_AMBIENT.stagger
-    const id = window.setTimeout(() => setIntroDone(true), Math.max(titleEnd, cardEnd) * 1000)
+    const barsEnd = BARS_IN.delay + BARS_IN.duration
+    const id = window.setTimeout(() => setIntroDone(true), Math.max(titleEnd, cardEnd, barsEnd) * 1000)
     return () => window.clearTimeout(id)
   }, [titleVisible, titleWords, firstCardLines])
 
@@ -440,7 +446,17 @@ export function ClientsModule() {
           </div>
 
           <div className="clients-slider-col">
-            <div className="clients-bars">
+            <motion.div
+              className="clients-bars"
+              initial={{ clipPath: 'inset(0 100% 0 0)' }}
+              animate={{ clipPath: titleVisible ? 'inset(0 0% 0 0)' : 'inset(0 100% 0 0)' }}
+              // Hide instantly (out of sight, for the replay), like the title.
+              transition={
+                titleVisible && !reduceMotion
+                  ? { duration: BARS_IN.duration, delay: BARS_IN.delay, ease: easeExpoOut }
+                  : { duration: 0 }
+              }
+            >
               {CARDS.map((_, index) => (
                 <div key={index} className="clients-bar">
                   {/* Past bars full, future empty; the current one is
@@ -454,7 +470,7 @@ export function ClientsModule() {
                   />
                 </div>
               ))}
-            </div>
+            </motion.div>
 
             <div className="clients-slider">
               <div className="clients-viewport" ref={emblaRef}>

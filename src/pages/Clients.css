@@ -75,6 +75,7 @@
 
 /* Progress bars: flex gap-2 */
 .clients-bars {
+  /* Draws in left to right with the first testimonial (Clients.tsx). */
   display: flex;
   gap: 8px;
 }

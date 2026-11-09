@@ -1,5 +1,6 @@
 import { useEffect, useRef, type CSSProperties } from 'react'
-import { RevealText } from '../RevealText'
+import { motion, useReducedMotion } from 'motion/react'
+import { RevealText, easeExpoOut } from '../RevealText'
 import { useTestReveal } from '../components/revealTrigger'
 import './Numbers.css'
 
@@ -43,23 +44,38 @@ const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) *
 const DESCRIPTION_DURATION = 1.3
 const DESCRIPTION_WORD_STAGGER = 0.02
 
+// The card's top line draws in left to right (clip-path wipe) on the same
+// trigger, on the description's duration and the reveal's expo-out ease, as
+// the Clients progress lines do.
+const LINE_DURATION = DESCRIPTION_DURATION
+
 function StatContent({ value, description }: { value: string; description: string }) {
   const [ref, visible] = useTestReveal<HTMLDivElement>()
+  const reduceMotion = useReducedMotion()
 
   return (
-    <div className="numbers-card-content" ref={ref}>
-      <CountUp value={value} visible={visible} />
-      <RevealText
-        as="div"
-        text={description}
-        by="word"
-        className="numbers-description"
-        duration={DESCRIPTION_DURATION}
-        stagger={DESCRIPTION_WORD_STAGGER}
-        isTriggered={visible}
-        hideDelay={0}
+    <>
+      <motion.div
+        className="numbers-card-line"
+        initial={{ clipPath: 'inset(0 100% 0 0)' }}
+        animate={{ clipPath: visible ? 'inset(0 0% 0 0)' : 'inset(0 100% 0 0)' }}
+        // Hide instantly (out of sight, for the replay), like the text.
+        transition={visible && !reduceMotion ? { duration: LINE_DURATION, ease: easeExpoOut } : { duration: 0 }}
       />
-    </div>
+      <div className="numbers-card-content" ref={ref}>
+        <CountUp value={value} visible={visible} />
+        <RevealText
+          as="div"
+          text={description}
+          by="word"
+          className="numbers-description"
+          duration={DESCRIPTION_DURATION}
+          stagger={DESCRIPTION_WORD_STAGGER}
+          isTriggered={visible}
+          hideDelay={0}
+        />
+      </div>
+    </>
   )
 }
 
@@ -157,7 +173,6 @@ export function NumbersModule() {
                   style={{ '--index': index + 1, zIndex: index + 1 } as CSSProperties}
                 >
                   <div className="numbers-card-inner">
-                    <div className="numbers-card-line" />
                     <StatContent value={stat.value} description={stat.description} />
                   </div>
                 </div>
