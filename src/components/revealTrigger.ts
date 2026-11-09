@@ -11,6 +11,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } fro
 const OFFSET_KEY = 'specto-trigger-y-offset-v2'
 const GUIDE_KEY = 'specto-show-trigger-guide'
 const REPLAY_KEY = 'specto-reveal-replay'
+const DIAGONAL_ARROW_KEY = 'specto-arrow-push-diagonal'
 
 /** Every text reveal on the site plays this many times faster than the
  *  Specto_TextReveal engine timings (title 1.6s, body 1.3s, and their
@@ -39,6 +40,7 @@ let offset = read(
 )
 let showGuide = read(GUIDE_KEY, (v) => v === 'true', true)
 let replay = read(REPLAY_KEY, (v) => v === 'true', true)
+let diagonalArrow = read(DIAGONAL_ARROW_KEY, (v) => v === 'true', false)
 const listeners = new Set<() => void>()
 
 const subscribe = (fn: () => void) => {
@@ -74,10 +76,19 @@ export function setReplay(value: boolean) {
   emit()
 }
 
+/** Section-header arrow push, to compare: off = slides in from the left,
+ *  on = comes in along its 45° diagonal (from the top left). */
+export function setDiagonalArrow(value: boolean) {
+  diagonalArrow = value
+  write(DIAGONAL_ARROW_KEY, String(value))
+  emit()
+}
+
 /** Px offset of the trigger line from the bottom of the viewport (≤ 0). */
 export const useTriggerOffset = () => useSyncExternalStore(subscribe, () => offset, () => TRIGGER_OFFSET_DEFAULT)
 export const useShowTriggerGuide = () => useSyncExternalStore(subscribe, () => showGuide, () => false)
 export const useReplay = () => useSyncExternalStore(subscribe, () => replay, () => false)
+export const useDiagonalArrow = () => useSyncExternalStore(subscribe, () => diagonalArrow, () => false)
 
 /**
  * RevealText's trigger, for testing: true once the element's top crosses the

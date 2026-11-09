@@ -1,9 +1,11 @@
 import {
+  setDiagonalArrow,
   setReplay,
   setShowTriggerGuide,
   setTriggerOffset,
   TRIGGER_OFFSET_MAX,
   TRIGGER_OFFSET_MIN,
+  useDiagonalArrow,
   useReplay,
   useShowTriggerGuide,
   useTriggerOffset,
@@ -18,6 +20,7 @@ export default function TriggerGuide() {
   const offset = useTriggerOffset()
   const show = useShowTriggerGuide()
   const replay = useReplay()
+  const diagonalArrow = useDiagonalArrow()
 
   return (
     <>
@@ -46,6 +49,11 @@ export default function TriggerGuide() {
         <label className="trigger-panel-toggle">
           <input type="checkbox" checked={replay} onChange={(e) => setReplay(e.target.checked)} />
           Replay
+        </label>
+        {/* Section-header arrow: slide in from the left, or along 45°. */}
+        <label className="trigger-panel-toggle">
+          <input type="checkbox" checked={diagonalArrow} onChange={(e) => setDiagonalArrow(e.target.checked)} />
+          Arrow 45°
         </label>
       </div>
     </>
