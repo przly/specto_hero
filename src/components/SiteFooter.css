@@ -119,6 +119,18 @@
   width: 100%;
 }
 
+/* Per-line reveal mask for titles and links (FooterLine in SiteFooter.tsx).
+   inline-block without overflow keeps the text's own baseline, so the layout
+   is unchanged; clip-path does the masking, with room for descenders. */
+.site-footer-line {
+  display: inline-block;
+  clip-path: inset(-0.1em -0.2em -0.2em -0.2em);
+}
+
+.site-footer-line-inner {
+  display: block;
+}
+
 /* text-gray-light-2 w-full px-1 text-right md:px-0; p: text-xs font-medium */
 .site-footer-copyright {
   width: 100%;
@@ -131,13 +143,22 @@
   margin: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  font-weight: var(--font-weight-medium);
+  /* Whole credit line in Geist Mono (Regular is the only weight shipped). */
+  font-family: var(--font-geist);
+  font-weight: var(--font-weight-normal);
 }
 
 /* -ml-1.5 w-[calc(100%+12px)] md:ml-0 md:w-full; Icon w-full (currentColor) */
 .site-footer-logo {
   width: calc(100% + calc(12 * var(--px)));
   margin-left: calc(-6 * var(--px));
+  display: grid;
+}
+
+/* One layer per letter (FooterLetter), all stacked in the same grid cell. */
+.site-footer-letter {
+  grid-area: 1 / 1;
+  will-change: transform;
 }
 
 .site-footer-logo svg {
