@@ -124,6 +124,43 @@ demo page `/clients`. Changes from the website's `modules/ClientSliders`:
   reveal fills in the lines after Embla has measured.
 - **Reduced motion:** the cursor button shows at full size without the scale.
 
+## Numbers module
+
+Source: `src/pages/Numbers.tsx` / `Numbers.css`, trigger in `src/components/revealTrigger.ts`,
+text reveal in `src/RevealText.tsx`; demo page `/numbers`. Layout as the website's
+`modules/NumbersModule` (sticky title on the left, cards that pin and stack on the right
+from 1024px), without the logos. Changes from the website:
+
+- **Text reveal engine:** every text reveal here is the Specto text-reveal engine
+  (`RevealText`, github.com/przly/Specto_TextReveal). It should already be in the website
+  project from an earlier implementation, so reuse that one.
+- **Trigger line:** a reveal starts when its element's top crosses a line 40px above the
+  bottom of the viewport (`IntersectionObserver`, bottom `rootMargin` of -40px). It resets
+  once you scroll back up and the element is fully below the viewport, so it replays.
+- **Title:** "Hush." reveals first, the title starts 0.25s after it. Both are per-word
+  masked slides, 1.6s per word with 20ms between words.
+- **Count-up:** each number counts from 0 to its value in 1.4s (ease-in-out cubic) when
+  its card crosses the trigger line. The prefix and suffix ("€", "M+", " days") don't
+  animate. An invisible copy of the final digits reserves the width and the figures are
+  tabular, so nothing shifts while counting.
+- **Card line:** the line on top of each card draws in left to right (a `clip-path` wipe,
+  1.3s, expo-out) on the same trigger as the number.
+- **Description:** reveals per word (1.3s, 20ms between words) on a trigger line 100px
+  higher: 140px above the bottom of the viewport, measured on the same element as the
+  number, so it starts slightly after the count-up.
+- **First card starts later:** the cards column's top padding is
+  `100vh - title sticky top - 300px` (title sticky top is 38vh, 40vh from 1280px), so the
+  first number scrolls in after the title has revealed and pinned.
+- **Stack centred in the viewport:** the first card pins at
+  `max(header bottom + 16px, 50vh - stack height / 2)`, where stack height is
+  `(cards - 1) × step + one card's height` and the header bottom is 76px.
+- **Card step:** each card pins one step below the previous one. The step is
+  `32px + 48px` (from 1024px), `32px + 68px` (1280px) and `32px + 88px` (1536px); past the
+  1512px design only the second part scales with the viewport, the 32px top padding
+  stays fixed.
+- **Reduced motion:** numbers show their final value and the card line appears without
+  the wipe.
+
 ## Source map
 
 | File | Contains |
@@ -133,4 +170,6 @@ demo page `/clients`. Changes from the website's `modules/ClientSliders`:
 | `src/components/ServiceCard.tsx` / `ServiceCard.css` | Service card: hover line, hover/scroll/touch triggers |
 | `src/components/HoverVideo.tsx` / `HoverVideo.css` | Forward/backward video playback, poster overlay |
 | `src/pages/Clients.tsx` / `Clients.css` | Client testimonial slider: in-place swap, autoplay timer, Next cursor button, tap to advance |
+| `src/pages/Numbers.tsx` / `Numbers.css` | Numbers module: title reveal, count-up, card line, sticky stack maths |
+| `src/components/revealTrigger.ts` | Shared reveal trigger line (40px above the viewport bottom), replay on scroll up |
 | `src/App.tsx` | Page composition |
