@@ -22,25 +22,59 @@
 /* Title h3 / h2: mb-3 text-xl tracking-tight text-gray-100 md:mb-5. The
    website's heading styles are unlayered, so heading-3's size and white
    colour win over text-xl and text-gray-100; only the margin applies. */
-.lets-build-title {
-  margin: 0 0 12px;
+.lets-build-title-wrap {
+  width: 100%;
+  margin-bottom: 12px;
 }
 
-/* pointer-events-none relative lg:ml-10, Img wrapper h-auto w-full max-w-159
-   (img: preflight max-width 100%, height auto) */
+.lets-build-title {
+  margin: 0;
+}
+
+/* Title per-word reveal (RevealText, by="word"), set up like the projects
+   section title: line-height set on the engine's lines (word mode sets the
+   block to line-height 0), masks top-aligned and moved down by the engine's
+   -7% end offset so the revealed title sits where the static one did. */
+.lets-build-title .hero-line {
+  line-height: var(--line-height-120); /* heading-3 */
+}
+
+.lets-build-title .hero-word-wrap {
+  position: relative;
+  top: 0.07lh;
+  vertical-align: top;
+}
+
+/* pointer-events-none relative (website's lg:ml-10 dropped: it balanced the
+   old PNG; the video's artwork is centred in its frame, so no offset), Img wrapper h-auto w-full max-w-159
+   (img: preflight max-width 100%, height auto). Now holds the "Together."
+   video: 660×366 render for a 636×365 box, offset 12px left so the frame
+   lines up with the box and the edge tags overhang it. */
 .lets-build-image {
   position: relative;
   display: block;
   width: 100%;
   max-width: calc(636 * var(--px));
+  /* 636×300, not the render's 636×365: the bottom 66px of the frame are
+     empty for the whole loop (lowest pixel ~y 289), so they're cut off. */
+  aspect-ratio: 636 / 300;
   pointer-events: none;
 }
 
-.lets-build-image img {
+.lets-build-image video {
+  position: absolute;
+  top: 0;
+  left: calc(-12 / 636 * 100%);
   display: block;
-  width: 100%;
+  width: calc(660 / 636 * 100%);
   height: auto;
-  object-fit: cover;
+  aspect-ratio: 660 / 366;
+  /* Cut the empty bottom (66 of 366) on the video itself, since its sides
+     must still overhang the box. */
+  clip-path: inset(0 0 calc(66 / 366 * 100%) 0);
+  /* The render is on pure #000; the page is rgb(12 12 12). Lighten lifts the
+     black to the page colour so the video's edge doesn't show as a box. */
+  mix-blend-mode: lighten;
 }
 
 /* mt-7 md:mt-16 */
@@ -49,12 +83,8 @@
 }
 
 @media (min-width: 768px) {
-  .lets-build-title { margin-bottom: 20px; }
+  .lets-build-title-wrap { margin-bottom: 20px; }
   .lets-build-cta { margin-top: 64px; }
-}
-
-@media (min-width: 1024px) {
-  .lets-build-image { margin-left: calc(40 * var(--px)); }
 }
 
 @media (min-width: 1280px) {
