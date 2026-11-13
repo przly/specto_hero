@@ -85,6 +85,45 @@ Source: `src/components/ServiceCard.tsx` / `ServiceCard.css`, `HoverVideo.tsx` /
 - **`/service-card` scroll room:** a full viewport of empty space above and below the
   grid, for testing scroll and touch playback.
 
+## Client testimonial slider
+
+Source: `src/pages/Clients.tsx` / `Clients.css`, text reveal in `src/RevealText.tsx`;
+demo page `/clients`. Changes from the website's `modules/ClientSliders`:
+
+- **Swap in place:** testimonials no longer slide sideways. Embla's fade plugin stacks the
+  slides. The old card's lines slide up and out of their masks (0.28s, 15ms between
+  lines), and the new quote, name and role come up line by line starting 0.12s later.
+- **Text reveal engine:** the reveal is the Specto text-reveal engine (`RevealText`,
+  github.com/przly/Specto_TextReveal). It should already be in the website project from
+  an earlier implementation, so reuse that one.
+- **Two reveal speeds:** autoplay reveals at 1.3s per line with 60ms between lines. A
+  click, tap or key press reveals at 0.9s per line with 40ms between lines.
+- **Intro:** the first testimonial reveals together with the section title, and the row of
+  progress lines draws in left to right (a `clip-path` wipe) at the same time. Autoplay
+  starts only when all three have finished.
+- **Autoplay:** the current progress line's own animation (5s, linear, `scaleX` 0 → 1) is
+  the timer; when it finishes the slider advances, so line and slide can't drift. It
+  pauses while the browser tab is hidden and does not pause on hover.
+- **Replay:** scrolling back up above the slider resets it to the first testimonial with a
+  fresh timer, so it reveals from the start on the next scroll down.
+- **Next cursor button:**
+  - It is our default Button, `position: fixed`, portalled to `<body>`, and follows the
+    pointer through a transform written directly in the `pointermove` handler.
+  - It is centred on the pointer in whole pixels, so the label stays sharp.
+  - Hover in scales it from 0.2 to 1 over 0.6s; hover out scales it back to 0.2 over
+    0.43s. Opacity finishes sooner than scale in both directions. Press scales to 0.95
+    in 0.15s. All on `cubic-bezier(0.23, 1, 0.32, 1)`.
+  - Hover is re-checked once per frame on scroll, because browsers send no pointer
+    events when the page scrolls under a resting cursor.
+- **Touch screens:** a tap anywhere on the testimonial advances it. Swipe is removed
+  (`watchDrag: false`), the cursor button never shows, and page scroll still works over
+  the testimonial.
+- **Keyboard:** Enter or Space on the focused testimonial area advances it.
+- **Card height on mobile:** the slider's height follows the current quote (Embla
+  auto-height, 300ms). Embla is re-initialised when a card's height changes, because the
+  reveal fills in the lines after Embla has measured.
+- **Reduced motion:** the cursor button shows at full size without the scale.
+
 ## Source map
 
 | File | Contains |
@@ -93,4 +132,5 @@ Source: `src/components/ServiceCard.tsx` / `ServiceCard.css`, `HoverVideo.tsx` /
 | `src/components/SiteHeader.tsx` / `SiteHeader.css` | Fixed site header (clone of specto-website `globals/SiteHeader`), mobile full-screen menu |
 | `src/components/ServiceCard.tsx` / `ServiceCard.css` | Service card: hover line, hover/scroll/touch triggers |
 | `src/components/HoverVideo.tsx` / `HoverVideo.css` | Forward/backward video playback, poster overlay |
+| `src/pages/Clients.tsx` / `Clients.css` | Client testimonial slider: in-place swap, autoplay timer, Next cursor button, tap to advance |
 | `src/App.tsx` | Page composition |
