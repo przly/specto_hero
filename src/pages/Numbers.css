@@ -245,9 +245,10 @@
      one "title scroll" down — the distance the title travels from entering
      the viewport (where its reveal triggers) to pinning at its sticky top.
      So the first number only scrolls in once the title has revealed and
-     pinned, instead of right under it while it is still animating. */
+     pinned, instead of right under it while it is still animating.
+     Minus 300px, so the first number comes in 300px of scroll sooner. */
   .numbers-cards-wrapper {
-    padding-top: calc(100vh - var(--numbers-title-top));
+    padding-top: calc(100vh - var(--numbers-title-top) - 300px);
     padding-left: 0;
   }
 
@@ -268,7 +269,11 @@
      padding + 56px pill = 76px), for short viewports. */
   .numbers-cards {
     --numbers-header-bottom: 76px;
-    --numbers-card-step: calc(80 * var(--px));
+    /* The step is the card's top padding (32px, fixed) plus the slice of
+       the number that peeks out above the next card; only that slice
+       grows with the number on wide screens, so the overlap stays as
+       designed. */
+    --numbers-card-step: calc(32px + 48 * var(--px));
     --numbers-card-height: calc(
       32px + var(--numbers-value-size) + 6px + var(--text-base) * var(--leading-normal)
     );
@@ -302,7 +307,7 @@
   .numbers-cards {
     grid-template-rows: repeat(var(--numcards), calc(544 * var(--px)));
     padding-bottom: 120px;
-    --numbers-card-step: calc(100 * var(--px));
+    --numbers-card-step: calc(32px + 68 * var(--px));
   }
 
   .numbers-module { --numbers-value-size: calc(96 * var(--px)); } /* text-8xl */
@@ -318,7 +323,7 @@
 @media (min-width: 1536px) {
   .numbers-cards {
     padding-bottom: 240px;
-    --numbers-card-step: calc(120 * var(--px));
+    --numbers-card-step: calc(32px + 88 * var(--px));
   }
 
   .numbers-module { --numbers-value-size: calc(128 * var(--px)); } /* text-9xl */
