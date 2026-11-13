@@ -26,7 +26,9 @@ import './Clients.css'
    card's lines slide up and out of their masks first (RevealText `exit`).
 
    Motion polish (emil-design-eng review), also changes from the website:
-   - a click / swipe reveals faster than autoplay (user waiting vs. ambient);
+   - a click / tap reveals faster than autoplay (user waiting vs. ambient);
+   - on touch screens a tap anywhere on the testimonial advances it (the
+     website's swipe is removed);
    - the first testimonial reveals with the title, autoplay waits until
      both have finished revealing, and it pauses
      while the tab is hidden (not on hover). The current progress bar's own animation is the autoplay timer,
@@ -75,7 +77,7 @@ type RevealTiming = { duration: number; stagger: number }
 // Autoplay (nobody waiting): Specto_TextReveal body-copy engine, 1.3s per
 // line, 60ms between lines — at the site-wide REVEAL_SPEED.
 const REVEAL_AMBIENT: RevealTiming = { duration: 1.3 / REVEAL_SPEED, stagger: 0.06 / REVEAL_SPEED }
-// Click / swipe / keyboard (the user asked for it): settle sooner.
+// Click / tap / keyboard (the user asked for it): settle sooner.
 const REVEAL_USER: RevealTiming = { duration: 0.9 / REVEAL_SPEED, stagger: 0.04 / REVEAL_SPEED }
 // Out: the old card's lines slide up and out of their masks, quicker than
 // they came in (asymmetric close), on ease smooth-out.
@@ -167,7 +169,7 @@ export function ClientsModule() {
   const containerRef = useRef<HTMLDivElement>(null)
   const barRefs = useRef<(HTMLSpanElement | null)[]>([])
   const timerRef = useRef<Animation | null>(null)
-  // Set by click / swipe / keyboard just before Embla selects, so that
+  // Set by click / tap / keyboard just before Embla selects, so that
   // selection reveals with the faster user timing.
   const userNavRef = useRef(false)
   // The title and the first testimonial reveal together when the title
@@ -210,7 +212,9 @@ export function ClientsModule() {
     {
       duration: 33,
       loop: true,
-      watchDrag: isMobile,
+      // No swipe at any width: the only way to advance by hand is a press
+      // (tap on touch, click with a mouse, Enter / Space on the keyboard).
+      watchDrag: false,
     },
     plugins,
   )
@@ -318,17 +322,11 @@ export function ClientsModule() {
       setRevealTiming(userNavRef.current ? REVEAL_USER : REVEAL_AMBIENT)
       userNavRef.current = false
     }
-    // A swipe is the user asking too.
-    const onPointerDown = () => {
-      userNavRef.current = true
-    }
     emblaApi.on('select', onSelect)
-    emblaApi.on('pointerDown', onPointerDown)
     onSelect()
 
     return () => {
       emblaApi.off('select', onSelect)
-      emblaApi.off('pointerDown', onPointerDown)
     }
   }, [emblaApi])
 

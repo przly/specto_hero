@@ -138,15 +138,20 @@
   .clients-track { transition: none; }
 }
 
-/* absolute top-0 left-0 z-10 hidden h-full w-full cursor-none lg:block */
+/* absolute top-0 left-0 z-10 h-full w-full cursor-none. Website: hidden
+   below lg (swipe there instead). Here it covers the testimonial at every
+   width, so a tap on it advances on touch screens too; page scroll
+   and pinch still work (manipulation only drops the double-tap zoom, so
+   quick taps advance), and there is no tap flash. */
 .clients-cursor-area {
   position: absolute;
   top: 0;
   left: 0;
   z-index: 10;
-  display: none;
   width: 100%;
   height: 100%;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Set from Clients.tsx with the hover state (see setHover there): a
@@ -259,8 +264,6 @@
   }
 
   .clients-slider-col { max-width: calc(605 * var(--px)); }
-
-  .clients-cursor-area { display: block; }
 
   .clients-section-margin { height: calc(200 * var(--px)); }
 }
