@@ -87,6 +87,13 @@
   .lets-build-cta { margin-top: 64px; }
 }
 
+/* Gap from the button to the footer: 196px at every width (the website's
+   100px padding + 96px section margin below 1024px), instead of growing to
+   300px at lg and 400px at xl. Only the top padding still grows at xl. */
+.lets-build .section-margin-default {
+  height: 96px;
+}
+
 @media (min-width: 1280px) {
-  .lets-build { padding-block: 200px; }
+  .lets-build { padding-top: 200px; }
 }
