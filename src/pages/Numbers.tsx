@@ -36,8 +36,9 @@ const STATS = [
 
 // Count-up: each number rolls from 0 ("0" → "589") once its card
 // crosses the trigger line. Prefix/suffix ("€", "M+", " days") stay put.
-// The description under it reveals per word on the same trigger, with the
-// Specto_TextReveal body duration (1.3s) and the word-mode stagger.
+// The description under it reveals per word on its own, higher trigger
+// (below), with the Specto_TextReveal body duration (1.3s) and the
+// word-mode stagger.
 const COUNT_DURATION = 1400 // ms
 const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2)
 
@@ -49,8 +50,14 @@ const DESCRIPTION_WORD_STAGGER = 0.02
 // the Clients progress lines do.
 const LINE_DURATION = DESCRIPTION_DURATION
 
+// The description waits for a trigger line 100px higher up the viewport
+// than the number's (140px above the bottom instead of 40px), measured on
+// the same element, so it starts once the card is 100px further in.
+const DESCRIPTION_TRIGGER_RAISE = 100
+
 function StatContent({ value, description }: { value: string; description: string }) {
   const [ref, visible] = useTestReveal<HTMLDivElement>()
+  const [, descriptionVisible] = useTestReveal<HTMLDivElement>(DESCRIPTION_TRIGGER_RAISE, ref)
   const reduceMotion = useReducedMotion()
 
   return (
@@ -71,7 +78,7 @@ function StatContent({ value, description }: { value: string; description: strin
           className="numbers-description"
           duration={DESCRIPTION_DURATION}
           stagger={DESCRIPTION_WORD_STAGGER}
-          isTriggered={visible}
+          isTriggered={descriptionVisible}
           hideDelay={0}
         />
       </div>
