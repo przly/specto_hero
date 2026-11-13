@@ -56,7 +56,7 @@ export function LetsBuildModule() {
               as="h2"
               text={TITLE}
               by="word"
-              className="heading heading-3 font-zero lets-build-title"
+              className="heading font-zero lets-build-title"
               duration={TITLE_DURATION}
               stagger={TITLE_WORD_STAGGER}
               isTriggered={titleVisible}

@@ -19,16 +19,20 @@
   text-align: center;
 }
 
-/* Title h3 / h2: mb-3 text-xl tracking-tight text-gray-100 md:mb-5. The
-   website's heading styles are unlayered, so heading-3's size and white
-   colour win over text-xl and text-gray-100; only the margin applies. */
+/* Title set in Aeonik/Regular/4xl (36px), not the website's heading-3.
+   32px between title, video and button at every width. */
 .lets-build-title-wrap {
   width: 100%;
-  margin-bottom: 12px;
+  margin-bottom: 32px;
 }
 
+/* Aeonik/Regular/4xl; grows with the layout past the 1512px design like
+   the other titles. */
 .lets-build-title {
   margin: 0;
+  font-size: calc(36 * var(--px)); /* text-4xl */
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-120);
 }
 
 /* Title per-word reveal (RevealText, by="word"), set up like the projects
@@ -36,7 +40,7 @@
    block to line-height 0), masks top-aligned and moved down by the engine's
    -7% end offset so the revealed title sits where the static one did. */
 .lets-build-title .hero-line {
-  line-height: var(--line-height-120); /* heading-3 */
+  line-height: var(--line-height-120); /* Aeonik/Regular/4xl */
 }
 
 .lets-build-title .hero-word-wrap {
@@ -54,7 +58,13 @@
   position: relative;
   display: block;
   width: 100%;
-  max-width: calc(636 * var(--px));
+  /* 6 of the container's 12 columns (8px gutters): 728px at the 1512px
+     design. Never narrower than the website's 636px box, so it stays full
+     width on phones and doesn't shrink where 6 columns would be smaller. */
+  max-width: max(
+    calc(636 * var(--px)),
+    calc((100% + 8 * var(--px)) * 6 / 12 - 8 * var(--px))
+  );
   /* 636×300, not the render's 636×365: the bottom 66px of the frame are
      empty for the whole loop (lowest pixel ~y 289), so they're cut off. */
   aspect-ratio: 636 / 300;
@@ -77,14 +87,8 @@
   mix-blend-mode: lighten;
 }
 
-/* mt-7 md:mt-16 */
 .lets-build-cta {
-  margin-top: 28px;
-}
-
-@media (min-width: 768px) {
-  .lets-build-title-wrap { margin-bottom: 20px; }
-  .lets-build-cta { margin-top: 64px; }
+  margin-top: 32px;
 }
 
 /* Gap from the button to the footer: 196px at every width (the website's
