@@ -4,12 +4,12 @@ import { RevealText } from '../RevealText'
 import { ARROW_PUSH_DURATION, useArrowPush } from '../components/arrowPush'
 import { useTestReveal } from '../components/revealTrigger'
 import crossArrowDown from '../assets/cross-arrow-down.svg?raw'
-import card1 from '../assets/projects/card-1.webp'
-import card2 from '../assets/projects/card-2.webp'
-import card3 from '../assets/projects/card-3.webp'
-import ngen from '../assets/projects/ngen.webp'
-import europeanYouthCard from '../assets/projects/european-youth-card.webp'
-import prowShop from '../assets/projects/prow-shop.webp'
+import cover1 from '../assets/projects/cover-1.webp'
+import cover2 from '../assets/projects/cover-2.webp'
+import cover3 from '../assets/projects/cover-3.webp'
+import cover4 from '../assets/projects/cover-4.webp'
+import cover5 from '../assets/projects/cover-5.webp'
+import { CodeCard } from '../components/CodeCard'
 // Button styles are Tailwind; injected only while this module is mounted (same
 // as Clients) so Tailwind's base layer doesn't leak into other pages.
 import buttonCss from '../components/Button/Button.embed.css?inline'
@@ -25,7 +25,8 @@ import './ProjectCardList.css'
    one, which gives the same result without a JS breakpoint. */
 
 type ProjectCard = {
-  image: string
+  /** No image: renders the interactive code card (Figma 6857:153183). */
+  image?: string
   title: string
   text: string
   href: string
@@ -41,12 +42,12 @@ const ALL_PROJECTS = { href: '#view-all', title: 'All Projects' }
 const DETAILS_LABEL = 'View Details'
 
 const CARDS: ProjectCard[] = [
-  { image: card1, title: 'Mehler Systems', text: 'Website', href: '#details' },
-  { image: card2, title: 'Generali Investments', text: 'Mobile App', href: '#details' },
-  { image: card3, title: 'Loterija Slovenije', text: 'Product & Website', href: '#details' },
-  { image: ngen, title: 'NGEN', text: 'Website', href: '#details' },
-  { image: europeanYouthCard, title: 'European Youth Card', text: 'Website', href: '#details' },
-  { image: prowShop, title: 'PROW Shop', text: 'Website', href: '#details' },
+  { image: cover1, title: 'Mehler Systems', text: 'Website', href: '#details' },
+  { image: cover2, title: 'Generali Investments', text: 'Mobile App', href: '#details' },
+  { image: cover3, title: 'Loterija Slovenije', text: 'Product & Website', href: '#details' },
+  { image: cover4, title: 'NGEN', text: 'Website', href: '#details' },
+  { title: 'Your project', text: 'What are you waiting for?', href: '#contact' },
+  { image: cover5, title: 'European Youth Card', text: 'Website', href: '#details' },
 ]
 
 // Title roll on hover, like the Clients slider's text change but moving
@@ -92,9 +93,13 @@ function Card({ image, title, text, href }: ProjectCard) {
   return (
     <div className="project-card" onPointerEnter={roll}>
       <div className="project-card-media">
-        <div className="project-card-img-wrap">
-          <img className="project-card-img" src={image} alt="Project" width={720} height={612} loading="lazy" draggable={false} />
-        </div>
+        {image ? (
+          <div className="project-card-img-wrap">
+            <img className="project-card-img" src={image} alt="Project" width={720} height={612} loading="lazy" draggable={false} />
+          </div>
+        ) : (
+          <CodeCard href={href} cta="Let’s get in touch" />
+        )}
       </div>
 
       <div>
@@ -115,9 +120,12 @@ function Card({ image, title, text, href }: ProjectCard) {
         <div className="project-card-text">{text}</div>
       </div>
 
-      <a className="project-card-link" href={href}>
-        {DETAILS_LABEL}
-      </a>
+      {/* The code card is interactive itself; its CTA is the link. */}
+      {image && (
+        <a className="project-card-link" href={href}>
+          {DETAILS_LABEL}
+        </a>
+      )}
     </div>
   )
 }

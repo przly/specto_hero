@@ -1,0 +1,245 @@
+/* Figma 6857:153183 "Code 3". Fills .project-card-media (the card's own
+   aspect ratio, radius and 0.5px gradient stroke). All the editor text (code,
+   gutter and status bar) scales with the card so it always shows exactly
+   17 lines, one font size for all of it (--code-font). */
+
+.code-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: inherit;
+  background: #0a0a0a;
+  box-shadow: 0 2px 40px 0 rgb(0 0 0 / 0.12);
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.8; /* LINE_HEIGHT_RATIO in CodeCard.tsx */
+  /* Lets the code and status bar size their font from the card height. */
+  container-type: size;
+
+  /* One font size for code, gutter and status bar. The card's height in em
+     is 33.583: 31.75em code area (.code-card-scroll) + 1.833em status bar
+     (22px at the Figma 12px). Resolved in the children, where 100cqh is
+     this card's height. */
+  --code-font: calc(100cqh / 33.583);
+  letter-spacing: -0.24px;
+  font-feature-settings: 'ss02' 1;
+  cursor: text;
+
+  /* Specto primary colours */
+  --code-red: #fb2c36;
+  --code-orange: #fe4400;
+  --code-blue: #00aeff;
+  --code-green: #a5ff00;
+  --code-yellow: #ffeb00;
+}
+
+/* Always 17 lines (MAX_LINES in CodeCard.tsx): the code area is 31.75em
+   tall, the 0.25em top padding + 17 lines of 1.8em + 0.9em (half a line)
+   of room at the bottom. Line height, gutter, gap and caret are all in em
+   / lh, so everything scales together; at the Figma size (12px) the gutter
+   and gap are 20px. */
+.code-card-scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.667em minmax(max-content, 1fr);
+  column-gap: 1.667em;
+  align-items: start;
+  padding: 0.25em 16px 0 9px;
+  font-size: var(--code-font);
+  letter-spacing: -0.02em;
+  /* Not scrollable: wheel / trackpad scroll the page, not the lines. Lines
+     are capped at 17 (MAX_LINES in CodeCard.tsx); only a line longer
+     than the card is followed sideways by the caret, from script. */
+  overflow: hidden;
+}
+
+/* Current-line band: a grid item spanning both columns in row 1, pushed
+   down to the caret's line (margin-top set inline). Spans the full content
+   width (the text track is at least 1fr), out over the side padding. Comes
+   first in the DOM, so the gutter and text paint over it. */
+.code-card-line {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  align-self: start;
+  height: 1lh;
+  margin-inline: -9px -16px;
+  background: rgb(255 255 255 / 0.04);
+  pointer-events: none;
+}
+
+/* Hover rows: same placement as the current-line band, one 1lh row per
+   line. The hovered row brightens slightly; quick in, slower out, so
+   sweeping across lines leaves a short fading trail. Stacks on top of the
+   current-line band when both are on the same line. */
+.code-card-rows {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  align-self: start;
+  margin-inline: -9px -16px;
+  pointer-events: none;
+}
+
+.code-card-rows > div {
+  height: 1lh;
+  background: rgb(255 255 255 / 0);
+  transition: background-color 400ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.code-card-rows > .is-hover {
+  background: rgb(255 255 255 / 0.03);
+  transition-duration: 120ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .code-card-rows > div { transition: none; }
+}
+
+.code-card-gutter {
+  grid-area: 1 / 1;
+  color: rgb(255 255 255 / 0.5);
+  user-select: none;
+  pointer-events: none;
+}
+
+.code-card-gutter .is-active { color: #fff; }
+
+.code-card-text {
+  grid-area: 1 / 2;
+  position: relative;
+  min-width: 100%;
+}
+
+.code-card-highlight,
+.code-card-input {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  font-feature-settings: inherit;
+  white-space: pre;
+  tab-size: 2;
+}
+
+.code-card-highlight {
+  /* Positioned so it paints above the drawn selection rects. */
+  position: relative;
+  color: #fff;
+  pointer-events: none;
+}
+
+/* Drawn selection (selectionRects in CodeCard.tsx): one full line tall,
+   so it sits centred on the text; top / left / width set inline. */
+.code-card-selection {
+  position: absolute;
+  height: 1lh;
+  background: rgb(165 255 0 / 0.25);
+  pointer-events: none;
+}
+
+/* TypeScript tokens (tsHighlight.ts) in the Specto primary colours. */
+.tok-comment { color: var(--code-green); }
+.tok-keyword { color: var(--code-blue); }
+.tok-string { color: var(--code-yellow); }
+.tok-number,
+.tok-constant { color: var(--code-orange); }
+/* Types and function names stay plain white. */
+.tok-punctuation { color: rgb(255 255 255 / 0.55); }
+
+/* Same text, invisible, on top: the native caret and selection show
+   through over the highlighted copy. */
+.code-card-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  resize: none;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent; /* drawn caret below */
+  outline: none;
+}
+
+.code-card-input::selection {
+  /* Hidden: browser-painted, can sit off-centre; drawn instead (above). */
+  background: transparent;
+  color: transparent;
+}
+
+.code-card-measure {
+  position: absolute;
+  visibility: hidden;
+  white-space: pre;
+  pointer-events: none;
+}
+
+/* Drawn caret: blinks on a fixed 1s loop whether or not the editor is
+   focused, and keeps blinking while typing (a native caret goes solid). */
+.code-card-caret {
+  position: absolute;
+  top: calc((1lh - 1.25em) / 2); /* centred in the line */
+  left: 0;
+  width: max(1.5px, 0.125em);
+  height: 1.25em;
+  background: var(--code-green);
+  pointer-events: none;
+  animation: code-card-blink 1s steps(1, end) infinite;
+}
+
+@keyframes code-card-blink {
+  50% { opacity: 0; }
+}
+
+/* No focus ring: text fields always match :focus-visible, so it would show
+   on every click. The blinking caret and white line number mark focus. */
+
+/* CTA centred in the editor, always visible. */
+.code-card-cta {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  font-family: var(--font-primary, 'Aeonik', sans-serif);
+  letter-spacing: normal;
+  line-height: normal;
+  cursor: auto;
+}
+
+/* status-bar: h-22 px-16 py-4 gap-16, white/5, right aligned */
+.code-card-status {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  /* Figma 22px tall, 4px 16px padding, 16px gap at 12px, in em so the
+     status bar scales with the code (same --code-font). */
+  gap: 1.333em;
+  height: 1.833em;
+  padding: 0.333em 1.333em;
+  font-size: var(--code-font);
+  letter-spacing: -0.02em;
+  background: rgb(255 255 255 / 0.05);
+  color: rgb(255 255 255 / 0.4);
+  line-height: 1.2;
+  white-space: nowrap;
+  user-select: none;
+  cursor: default;
+}
+
+.code-card-branch {
+  display: flex;
+  align-items: center;
+}
+
+.code-card-branch img {
+  display: block;
+  flex-shrink: 0;
+  /* 12px at the Figma size; scales with the status text. */
+  width: 1em;
+  height: 1em;
+}

@@ -137,14 +137,34 @@
 
 @media (hover: hover) {
   .project-card:hover .project-card-img-wrap { filter: brightness(1.1); }
+
+  .project-card:hover .project-card-media::after {
+    --stroke-top: 0.3;
+    --stroke-bottom: 0.15;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .project-card-img-wrap { transition: none; }
 }
 
+/* Stroke alphas as registered properties, so the hover change below can
+   transition (a gradient itself can't). */
+@property --stroke-top {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0.2;
+}
+
+@property --stroke-bottom {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0.05;
+}
+
 /* Gradient stroke on the image: 0.5px white, 20% at the top fading to 5%
-   at the bottom. A padded gradient box with its content area masked out, so
+   at the bottom; on card hover each stop is 10 points stronger (30% → 15%),
+   on the same curve and duration as the image brightening. A padded gradient box with its content area masked out, so
    only the 0.5px ring shows and it follows the rounded corners. Sits above
    the image (and its hover brightening), not affected by it. */
 .project-card-media::after {
@@ -154,7 +174,10 @@
   z-index: 1;
   padding: 0.5px;
   border-radius: inherit;
-  background: linear-gradient(to bottom, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0.05));
+  background: linear-gradient(to bottom, rgb(255 255 255 / var(--stroke-top)), rgb(255 255 255 / var(--stroke-bottom)));
+  transition:
+    --stroke-top 400ms cubic-bezier(0.23, 1, 0.32, 1),
+    --stroke-bottom 400ms cubic-bezier(0.23, 1, 0.32, 1);
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -163,6 +186,51 @@
     linear-gradient(#000 0 0) content-box exclude,
     linear-gradient(#000 0 0);
   pointer-events: none;
+}
+
+/* Retina: a 0.5px ring is one device pixel. Straight edges land on that
+   pixel at full strength, but through the corners anti-aliasing spreads the
+   same line over two fainter pixels, so the curve reads thinner. Here the
+   ring is built from its parts instead (four 0.5px edge strips + four radial
+   arcs), which lets the arcs be 0.75px so they match the edges by eye.
+   --ring-soft is the arcs' anti-aliasing (half a device pixel each side).
+   At 1x the masked box above stays: the strips would blur and gap there. */
+@media (min-resolution: 2dppx), (-webkit-min-device-pixel-ratio: 2) {
+  .project-card-media::after {
+    --ring-r: calc(8 * var(--px));
+    --ring-soft: 0.25px;
+    --ring-in: calc(var(--ring-r) - 0.75px);
+    --ring-arc:
+      transparent calc(var(--ring-in) - var(--ring-soft)),
+      #000 calc(var(--ring-in) + var(--ring-soft)),
+      #000 calc(var(--ring-r) - var(--ring-soft)),
+      transparent calc(var(--ring-r) + var(--ring-soft));
+    --ring-edge: linear-gradient(#000 0 0);
+    padding: 0;
+    -webkit-mask-composite: source-over;
+    -webkit-mask:
+      radial-gradient(circle at 100% 100%, var(--ring-arc)) 0 0 / var(--ring-r) var(--ring-r) no-repeat,
+      radial-gradient(circle at 0 100%, var(--ring-arc)) 100% 0 / var(--ring-r) var(--ring-r) no-repeat,
+      radial-gradient(circle at 100% 0, var(--ring-arc)) 0 100% / var(--ring-r) var(--ring-r) no-repeat,
+      radial-gradient(circle at 0 0, var(--ring-arc)) 100% 100% / var(--ring-r) var(--ring-r) no-repeat,
+      var(--ring-edge) var(--ring-r) 0 / calc(100% - 2 * var(--ring-r)) 0.5px no-repeat,
+      var(--ring-edge) var(--ring-r) 100% / calc(100% - 2 * var(--ring-r)) 0.5px no-repeat,
+      var(--ring-edge) 0 var(--ring-r) / 0.5px calc(100% - 2 * var(--ring-r)) no-repeat,
+      var(--ring-edge) 100% var(--ring-r) / 0.5px calc(100% - 2 * var(--ring-r)) no-repeat;
+    mask:
+      radial-gradient(circle at 100% 100%, var(--ring-arc)) 0 0 / var(--ring-r) var(--ring-r) no-repeat,
+      radial-gradient(circle at 0 100%, var(--ring-arc)) 100% 0 / var(--ring-r) var(--ring-r) no-repeat,
+      radial-gradient(circle at 100% 0, var(--ring-arc)) 0 100% / var(--ring-r) var(--ring-r) no-repeat,
+      radial-gradient(circle at 0 0, var(--ring-arc)) 100% 100% / var(--ring-r) var(--ring-r) no-repeat,
+      var(--ring-edge) var(--ring-r) 0 / calc(100% - 2 * var(--ring-r)) 0.5px no-repeat,
+      var(--ring-edge) var(--ring-r) 100% / calc(100% - 2 * var(--ring-r)) 0.5px no-repeat,
+      var(--ring-edge) 0 var(--ring-r) / 0.5px calc(100% - 2 * var(--ring-r)) no-repeat,
+      var(--ring-edge) 100% var(--ring-r) / 0.5px calc(100% - 2 * var(--ring-r)) no-repeat;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-card-media::after { transition: none; }
 }
 
 /* absolute h-full w-full object-cover */
