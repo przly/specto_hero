@@ -85,6 +85,15 @@ Source: `src/components/ServiceCard.tsx` / `ServiceCard.css`, `HoverVideo.tsx` /
 - **`/service-card` scroll room:** a full viewport of empty space above and below the
   grid, for testing scroll and touch playback.
 
+- **`/process` scroll room:** a full viewport of empty space above the module, for
+  testing the animations as the section scrolls into view.
+- **Explore section art is a video:** `section-explore.mp4` (cropped tight to the logo,
+  320×320, no audio) replaces the still image. It plays once when the section is reached
+  (the same moment the timeline starts), holds on its last frame, and rewinds when you
+  scroll back above the section. The first section's trigger is its image centre crossing
+  the shared reveal line (40px above the viewport bottom), because that image sits above
+  the ticket's centre and can never line up with it.
+
 ## Client testimonial slider
 
 Source: `src/pages/Clients.tsx` / `Clients.css`, text reveal in `src/RevealText.tsx`;

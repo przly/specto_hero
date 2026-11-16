@@ -8,6 +8,12 @@
   background: var(--color-black);
 }
 
+/* A full viewport of empty space above the module, for testing it coming into view. */
+.process-viewport-spacer {
+  height: 100vh;
+  height: 100svh;
+}
+
 .process {
   display: grid;
   grid-template-columns: minmax(0, calc(483 * var(--px))) minmax(0, calc(728 * var(--px)));
@@ -111,7 +117,8 @@
   overflow: hidden;
 }
 
-.process-section-art img {
+.process-section-art img,
+.process-section-art video {
   position: absolute;
   inset: 0;
   display: block;

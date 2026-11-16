@@ -4,7 +4,7 @@ import { RevealText } from '../RevealText'
 import { REVEAL_SPEED } from '../components/revealTrigger'
 import { TICKET_SWAP_MS } from '../components/jiraTicketTiming'
 import JiraTicket, { type AvatarTone, type TeamAvatar, type TicketState } from '../components/JiraTicket'
-import sectionExplore from '../assets/process/section-explore.png'
+import sectionExploreVideo from '../assets/process/section-explore.mp4'
 import sectionBuild from '../assets/process/section-build.png'
 import sectionEvolve from '../assets/process/section-evolve.png'
 import usersThree from '../assets/process/users-three.svg'
@@ -41,7 +41,7 @@ type Section = {
   title: string
   intro: string
   /** Section icon art and how Figma crops it inside the 107px frame. */
-  art: { src: string; crop?: CSSProperties }
+  art: { src: string; crop?: CSSProperties; video?: boolean }
   steps: Step[]
   milestone: { icon: string; title?: string; body?: string; bright?: boolean }
   /** Fade the timeline out at the bottom too (last section). */
@@ -58,7 +58,7 @@ const SECTIONS: Section[] = [
     title: 'Explore',
     intro:
       'Every great product starts with clarity. This phase uncovers business goals, challenges, and opportunities - turning insights into a clear strategic and creative foundation. Workshops, research, and a clickable prototype ensure everyone moves forward with confidence and alignment.',
-    art: { src: sectionExplore, crop: ART_CROP },
+    art: { src: sectionExploreVideo, video: true },
     steps: [
       {
         label: 'Discovery Workshops',
@@ -222,6 +222,24 @@ function useRevealClass(shown: boolean, slowMo: number) {
     return () => clearTimeout(t)
   }, [hiding, slowMo])
   return shown ? ' is-shown' : hiding ? ' is-hiding' : ''
+}
+
+/** Section art video: plays once when the section is reached, holds on its
+    last frame, and rewinds to the first once you scroll back above it so it
+    plays again next time. */
+function ArtVideo({ src, play }: { src: string; play: boolean }) {
+  const ref = useRef<HTMLVideoElement>(null)
+  useEffect(() => {
+    const video = ref.current
+    if (!video) return
+    if (play) {
+      video.play().catch(() => {})
+    } else {
+      video.pause()
+      video.currentTime = 0
+    }
+  }, [play])
+  return <video ref={ref} src={src} muted playsInline preload="auto" aria-hidden="true" />
 }
 
 function TimelineStep({ step, shown, slowMo }: { step: Step; shown: boolean; slowMo: number }) {
@@ -427,8 +445,12 @@ export default function ProcessPage() {
       const line = centre(card.getBoundingClientRect())
       const arts = artRefs.current.map((el) => (el ? centre(el.getBoundingClientRect()) : Infinity))
       let count = 0
+      // The first image sits above the ticket's centre from the start, so it
+      // can never "line up" with it: it plays when it scrolls into view (its
+      // centre crosses the shared reveal line, 40px above the viewport bottom).
+      const firstLine = Math.min(line, window.innerHeight - 40)
       arts.forEach((c, i) => {
-        if (c <= line) count = i + 1
+        if (c <= (i === 0 ? firstLine : line)) count = i + 1
       })
       setReachedSections(count)
     }
@@ -448,6 +470,8 @@ export default function ProcessPage() {
 
   return (
     <main className="process-page" style={{ '--motion-slow': slowMo } as CSSProperties}>
+      {/* Empty viewport above, so the section's entrance can be tested while scrolling in. */}
+      <div className="process-viewport-spacer" aria-hidden="true" />
       <section className="process" aria-labelledby="process-title">
         <div className="process-aside">
           <div className="process-sticky">
@@ -487,12 +511,16 @@ export default function ProcessPage() {
                     artRefs.current[i] = el
                   }}
                 >
-                  <img
-                    src={section.art.src}
-                    alt=""
-                    style={section.art.crop}
-                    data-crop={section.art.crop ? true : undefined}
-                  />
+                  {section.art.video ? (
+                    <ArtVideo src={section.art.src} play={reachedSections > i} />
+                  ) : (
+                    <img
+                      src={section.art.src}
+                      alt=""
+                      style={section.art.crop}
+                      data-crop={section.art.crop ? true : undefined}
+                    />
+                  )}
                 </div>
                 <h3 className="process-section-title">
                   <span className="process-section-number">{section.number}</span>
