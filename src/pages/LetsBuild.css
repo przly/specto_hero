@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding-block: 100px;
+  padding-top: 100px;
 }
 
 /* flex flex-col items-center justify-center text-center */
@@ -19,20 +19,24 @@
   text-align: center;
 }
 
-/* Title set in Aeonik/Regular/4xl (36px), not the website's heading-3.
+/* Title set in Aeonik/Regular/xl (mobile) / 4xl (36px), not the website’s heading-3.
    32px between title, video and button at every width. */
 .lets-build-title-wrap {
   width: 100%;
   margin-bottom: 32px;
 }
 
-/* Aeonik/Regular/4xl; grows with the layout past the 1512px design like
-   the other titles. */
+/* Aeonik/Regular/xl (20px) on mobile, Aeonik/Regular/4xl from md up; grows
+   with the layout past the 1512px design like the other titles. */
 .lets-build-title {
   margin: 0;
-  font-size: calc(36 * var(--px)); /* text-4xl */
+  font-size: var(--text-xl);
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-120);
+}
+
+@media (min-width: 768px) {
+  .lets-build-title { font-size: calc(36 * var(--px)); } /* text-4xl */
 }
 
 /* Title per-word reveal (RevealText, by="word"), set up like the projects
@@ -91,8 +95,8 @@
   margin-top: 32px;
 }
 
-/* Gap from the button to the footer: 196px at every width (the website's
-   100px padding + 96px section margin below 1024px), instead of growing to
+/* Gap from the button to the footer: 96px at every width (just the section
+   margin; no bottom padding), instead of the website's 196px that grows to
    300px at lg and 400px at xl. Only the top padding still grows at xl. */
 .lets-build .section-margin-default {
   height: 96px;
