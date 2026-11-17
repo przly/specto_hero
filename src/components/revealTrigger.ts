@@ -26,6 +26,39 @@ function useIsDesktop() {
   )
 }
 
+/** Bottom of the fixed navbar pill, in px from the top of the viewport.
+ *  Follows its size (it changes height at the lg breakpoint). */
+export function useNavbarBottom() {
+  const [bottom, setBottom] = useState(0)
+  useEffect(() => {
+    const navbar = document.querySelector<HTMLElement>('.site-header-pill')
+    if (!navbar) return
+    const measure = () => setBottom(Math.max(0, navbar.getBoundingClientRect().bottom))
+    const observer = new ResizeObserver(measure)
+    observer.observe(navbar)
+    window.addEventListener('resize', measure)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [])
+  return bottom
+}
+
+/** True on touch screens (no real hover), where the project cards play their
+ *  hover state on scroll. */
+export function useNoHover() {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mql = window.matchMedia('(hover: none)')
+      mql.addEventListener('change', onChange)
+      return () => mql.removeEventListener('change', onChange)
+    },
+    () => window.matchMedia('(hover: none)').matches,
+    () => false,
+  )
+}
+
 /** The site's trigger line, in px above the bottom of the viewport, for the
  *  current page and screen width. */
 export function useTriggerOffset() {

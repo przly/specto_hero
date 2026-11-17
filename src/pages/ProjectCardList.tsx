@@ -1,8 +1,8 @@
-import { Fragment, useRef, type PointerEvent } from 'react'
+import { Fragment, useEffect, useRef, useState, type PointerEvent } from 'react'
 import Button from '../components/Button/Button'
 import { RevealText } from '../RevealText'
 import { ARROW_PUSH_DURATION, useArrowPush } from '../components/arrowPush'
-import { useTestReveal } from '../components/revealTrigger'
+import { REVEAL_SPEED, useNavbarBottom, useNoHover, useTestReveal, useTriggerOffset } from '../components/revealTrigger'
 import crossArrowDown from '../assets/cross-arrow-down.svg?raw'
 import cover1 from '../assets/projects/cover-1.webp'
 import cover2 from '../assets/projects/cover-2.webp'
@@ -59,14 +59,24 @@ const CARDS: ProjectCard[] = [
 const ROLL_DURATION = 900 // ms
 const ROLL_EASE = 'cubic-bezier(0.16, 1, 0.3, 1)'
 const ROLL_WORD_STAGGER = 40 // ms, Clients' user-triggered stagger
+// Touch screens roll on scroll instead, at the text reveal's title speed
+// (TITLE_DURATION / TITLE_WORD_STAGGER, scaled by REVEAL_SPEED).
+const SCROLL_ROLL_DURATION = (TITLE_DURATION * 1000) / REVEAL_SPEED // ms
+const SCROLL_ROLL_WORD_STAGGER = (TITLE_WORD_STAGGER * 1000) / REVEAL_SPEED // ms
 
 function Card({ image, title, text, href }: ProjectCard) {
   const titleRef = useRef<HTMLHeadingElement>(null)
   const words = title.split(/\s+/).filter(Boolean)
+  // Touch screens: the card is "hovered" once its title crosses the site's
+  // trigger line (same line as the text reveals). Drives .is-active.
+  const [active, setActive] = useState(false)
+  const triggerOffset = useTriggerOffset()
+  const navbarBottom = useNavbarBottom()
+  const noHover = useNoHover()
 
-  const roll = (e: PointerEvent) => {
+  const roll = (duration = ROLL_DURATION, stagger = ROLL_WORD_STAGGER) => {
     const rolls = titleRef.current?.querySelectorAll<HTMLElement>('.project-card-title-roll')
-    if (e.pointerType === 'touch' || !rolls?.length) return
+    if (!rolls?.length) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
     // Every hover rolls, even mid-roll. Each word has identical copies one
@@ -81,8 +91,8 @@ function Card({ image, title, text, href }: ProjectCard) {
     rolls.forEach((el, index) => {
       el.getAnimations().forEach((a) => a.cancel())
       el.animate([{ transform: `translateY(${starts[index]}%)` }, { transform: 'translateY(-100%)' }], {
-        duration: ROLL_DURATION,
-        delay: index * ROLL_WORD_STAGGER,
+        duration,
+        delay: index * stagger,
         easing: ROLL_EASE,
         // Hold the start position through the stagger delay.
         fill: 'backwards',
@@ -90,8 +100,38 @@ function Card({ image, title, text, href }: ProjectCard) {
     })
   }
 
+  // Touch has no real hover: mouse/pen roll on enter, touch on scroll below.
+  const onPointerEnter = (e: PointerEvent) => {
+    if (e.pointerType !== 'touch') roll()
+  }
+
+  // Touch screens: the card is active while its title is between two trigger
+  // lines. The bottom one is the site's trigger line (triggerOffset above the
+  // bottom of the screen): scrolling down, the title's top crossing it turns
+  // the card on. The top one sits the same distance below the bottom of the
+  // fixed navbar: scrolling back up, the title coming down past it turns the
+  // card on again. Crossing either line the other way turns it off. The root
+  // margins move the viewport's edges in to the two lines.
+  const rollRef = useRef(roll)
+  useEffect(() => {
+    rollRef.current = roll
+  })
+  useEffect(() => {
+    const title = titleRef.current
+    if (!title || !noHover) return setActive(false)
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setActive(entry.isIntersecting)
+        if (entry.isIntersecting) rollRef.current(SCROLL_ROLL_DURATION, SCROLL_ROLL_WORD_STAGGER)
+      },
+      { rootMargin: `${-(navbarBottom + triggerOffset)}px 0px ${-triggerOffset}px 0px` },
+    )
+    observer.observe(title)
+    return () => observer.disconnect()
+  }, [noHover, navbarBottom, triggerOffset])
+
   return (
-    <div className="project-card" onPointerEnter={roll}>
+    <div className={active ? 'project-card is-active' : 'project-card'} onPointerEnter={onPointerEnter}>
       <div className="project-card-media">
         {image ? (
           <div className="project-card-img-wrap">

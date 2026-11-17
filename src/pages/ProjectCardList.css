@@ -144,6 +144,15 @@
   }
 }
 
+/* Touch screens: .is-active is set once the card's title crosses the
+   trigger line (ProjectCardList.tsx), same look as hover. */
+.project-card.is-active .project-card-img-wrap { filter: brightness(1.1); }
+
+.project-card.is-active .project-card-media::after {
+  --stroke-top: 0.3;
+  --stroke-bottom: 0.15;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .project-card-img-wrap { transition: none; }
 }
