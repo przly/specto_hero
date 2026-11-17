@@ -144,19 +144,21 @@ from 1024px), without the logos. Changes from the website:
   (`RevealText`, github.com/przly/Specto_TextReveal). It should already be in the website
   project from an earlier implementation, so reuse that one.
 - **Trigger line:** a reveal starts when its element's top crosses a line 40px above the
-  bottom of the viewport (`IntersectionObserver`, bottom `rootMargin` of -40px). It resets
-  once you scroll back up and the element is fully below the viewport, so it replays.
+  bottom of the viewport (`IntersectionObserver`, bottom `rootMargin` of -40px). On the
+  homepage on desktop (1024px and up) the line sits 100px higher, 140px above the bottom,
+  for every reveal including the footer. It resets once you scroll back up and the element is fully below the viewport, so it replays.
 - **Title:** "Hush." reveals first, the title starts 0.25s after it. Both are per-word
-  masked slides, 1.6s per word with 20ms between words.
+  masked slides, 1.6s per word with 20ms between words. Above 1512px "Hush." and its
+  gap to the title grow with the viewport, as the title does.
 - **Count-up:** each number counts from 0 to its value in 1.4s (ease-in-out cubic) when
   its card crosses the trigger line. The prefix and suffix ("€", "M+", " days") don't
   animate. An invisible copy of the final digits reserves the width and the figures are
   tabular, so nothing shifts while counting.
 - **Card line:** the line on top of each card draws in left to right (a `clip-path` wipe,
   1.3s, expo-out) on the same trigger as the number.
-- **Description:** reveals per word (1.3s, 20ms between words) on a trigger line 100px
-  higher: 140px above the bottom of the viewport, measured on the same element as the
-  number, so it starts slightly after the count-up.
+- **Description:** reveals per word (1.3s, 20ms between words) on the same trigger
+  line as the number, measured on its own top edge, so it starts once the small text
+  itself reaches the line, slightly after the count-up.
 - **First card starts later:** the cards column's top padding is
   `100vh - title sticky top - 300px` (title sticky top is 38vh, 40vh from 1280px), so the
   first number scrolls in after the title has revealed and pinned.
@@ -180,5 +182,5 @@ from 1024px), without the logos. Changes from the website:
 | `src/components/HoverVideo.tsx` / `HoverVideo.css` | Forward/backward video playback, poster overlay |
 | `src/pages/Clients.tsx` / `Clients.css` | Client testimonial slider: in-place swap, autoplay timer, Next cursor button, tap to advance |
 | `src/pages/Numbers.tsx` / `Numbers.css` | Numbers module: title reveal, count-up, card line, sticky stack maths |
-| `src/components/revealTrigger.ts` | Shared reveal trigger line (40px above the viewport bottom), replay on scroll up |
+| `src/components/revealTrigger.ts` | Shared reveal trigger line (40px above the viewport bottom, 140px on the desktop homepage), replay on scroll up |
 | `src/App.tsx` | Page composition |
