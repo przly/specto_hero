@@ -11,6 +11,7 @@ import JiraTicketPage from './pages/JiraTicketPage'
 import ProcessPage from './pages/ProcessPage'
 import ButtonsPage from './pages/ButtonsPage'
 import RouteSwitcher from './components/RouteSwitcher'
+import TriggerLineOverlay from './components/TriggerLineOverlay'
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         <Route path="/buttons" element={<ButtonsPage />} />
       </Routes>
       <RouteSwitcher />
+      <TriggerLineOverlay />
     </>
   )
 }

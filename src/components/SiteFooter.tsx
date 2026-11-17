@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } from 'react'
 import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from 'motion/react'
 import { easeExpoOut } from '../RevealText'
+import { useTriggerOffset } from './revealTrigger'
 import footerLogo from '../assets/footer-logo.svg?raw'
 import './SiteFooter.css'
 
@@ -162,17 +163,16 @@ function FooterLine({ text, index, visible }: { text: string; index: number; vis
 
 // The lines reveal once they can actually be seen: the footer's top edge (where
 // the dark page above ends) has scrolled up past the top of the grid, and the
-// grid is above the site's trigger line (40px over the viewport bottom). On
+// grid is above the site's trigger line (see useTriggerOffset). On
 // desktop the contents slide down inside the clipped footer, so this is later
 // than the grid merely entering the viewport. Resets once the footer is fully
 // below the viewport again (out of sight), ready to replay.
-const TRIGGER_OFFSET = 40
-
 function useFooterLinesVisible(
   footerRef: RefObject<HTMLElement | null>,
   gridRef: RefObject<HTMLElement | null>,
 ) {
   const [visible, setVisible] = useState(false)
+  const triggerOffset = useTriggerOffset()
 
   useEffect(() => {
     let frame = 0
@@ -184,7 +184,7 @@ function useFooterLinesVisible(
       const footerTop = footer.getBoundingClientRect().top
       const gridTop = grid.getBoundingClientRect().top
       const vh = window.innerHeight
-      if (footerTop <= gridTop && gridTop <= vh - TRIGGER_OFFSET) setVisible(true)
+      if (footerTop <= gridTop && gridTop <= vh - triggerOffset) setVisible(true)
       else if (footerTop >= vh) setVisible(false)
     }
     const schedule = () => {
@@ -198,7 +198,7 @@ function useFooterLinesVisible(
       window.removeEventListener('scroll', schedule)
       window.removeEventListener('resize', schedule)
     }
-  }, [footerRef, gridRef])
+  }, [footerRef, gridRef, triggerOffset])
 
   return visible
 }
