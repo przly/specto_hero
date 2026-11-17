@@ -36,8 +36,8 @@ const STATS = [
 
 // Count-up: each number rolls from 0 ("0" → "589") once its card
 // crosses the trigger line. Prefix/suffix ("€", "M+", " days") stay put.
-// The description under it reveals per word on its own, higher trigger
-// (below), with the Specto_TextReveal body duration (1.3s) and the
+// The description under it reveals per word when its own top crosses the
+// trigger line (below), with the Specto_TextReveal body duration (1.3s) and the
 // word-mode stagger.
 const COUNT_DURATION = 1400 // ms
 const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2)
@@ -50,14 +50,13 @@ const DESCRIPTION_WORD_STAGGER = 0.02
 // the Clients progress lines do.
 const LINE_DURATION = DESCRIPTION_DURATION
 
-// The description waits for a trigger line 100px higher up the viewport
-// than the number's (140px above the bottom instead of 40px), measured on
-// the same element, so it starts once the card is 100px further in.
-const DESCRIPTION_TRIGGER_RAISE = 100
+// The description uses the same trigger line as the number, measured on the
+// description's own top edge, so it starts once the small text itself
+// reaches the line.
 
 function StatContent({ value, description }: { value: string; description: string }) {
   const [ref, visible] = useTestReveal<HTMLDivElement>()
-  const [, descriptionVisible] = useTestReveal<HTMLDivElement>(DESCRIPTION_TRIGGER_RAISE, ref)
+  const [descriptionRef, descriptionVisible] = useTestReveal<HTMLDivElement>()
   const reduceMotion = useReducedMotion()
 
   return (
@@ -71,16 +70,18 @@ function StatContent({ value, description }: { value: string; description: strin
       />
       <div className="numbers-card-content" ref={ref}>
         <CountUp value={value} visible={visible} />
-        <RevealText
-          as="div"
-          text={description}
-          by="word"
-          className="numbers-description"
-          duration={DESCRIPTION_DURATION}
-          stagger={DESCRIPTION_WORD_STAGGER}
-          isTriggered={descriptionVisible}
-          hideDelay={0}
-        />
+        <div ref={descriptionRef}>
+          <RevealText
+            as="div"
+            text={description}
+            by="word"
+            className="numbers-description"
+            duration={DESCRIPTION_DURATION}
+            stagger={DESCRIPTION_WORD_STAGGER}
+            isTriggered={descriptionVisible}
+            hideDelay={0}
+          />
+        </div>
       </div>
     </>
   )

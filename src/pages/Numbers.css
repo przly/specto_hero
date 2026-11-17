@@ -71,11 +71,13 @@
   height: 100%;
 }
 
-/* mb-3 text-sm text-white */
+/* mb-3 text-sm text-white. Change from the website: size and gap are in
+   --px, so above 1512px "Hush." grows with the viewport like the title
+   (heading-2) under it; at 1512px and below it stays 14px with a 12px gap. */
 .numbers-subtitle {
-  margin-bottom: 12px;
+  margin-bottom: calc(12 * var(--px));
   color: var(--color-white);
-  font-size: var(--text-sm);
+  font-size: calc(14 * var(--px));
   line-height: var(--text-sm--line-height);
 }
 
