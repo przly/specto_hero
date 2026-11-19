@@ -1,0 +1,85 @@
+.intro-page {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  /* Matches the video's background so there's no flash before the first frame. */
+  background: #e8e8e8;
+}
+
+.intro-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100vw, 100dvh);
+  height: max(100vw, 100dvh);
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  display: block;
+}
+
+/* Navbar: parked fully above the viewport (its own height plus the top
+   padding and shadow), then slides down once the video ends. `translate`
+   rather than `transform` so it stays off the header's own styles. */
+.intro-page .site-header {
+  translate: 0 calc(-100% - 24px);
+  transition: translate 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.intro-page.is-header-in .site-header {
+  translate: 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-page .site-header {
+    translate: 0 0;
+    opacity: 0;
+    transition: opacity 300ms ease;
+  }
+
+  .intro-page.is-header-in .site-header {
+    opacity: 1;
+  }
+}
+
+/* Black logo centered on the held first frame. Appears with the frame
+   (rises 12px out of a blur), leaves as playback starts (lifts on up into a
+   blur, faster and ease-in so it clears before the video gets going). */
+.intro-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(140px, 18vw, 240px);
+  height: auto;
+  translate: -50% calc(-50% + 12px);
+  opacity: 0;
+  filter: blur(8px);
+}
+
+.intro-logo.is-in {
+  translate: -50% -50%;
+  opacity: 1;
+  filter: blur(0);
+  transition:
+    translate 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 400ms ease-out,
+    filter 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.intro-logo.is-out {
+  translate: -50% calc(-50% - 12px);
+  opacity: 0;
+  filter: blur(8px);
+  transition:
+    translate 300ms cubic-bezier(0.7, 0, 0.84, 0),
+    opacity 300ms ease-in,
+    filter 300ms ease-in;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-logo,
+  .intro-logo.is-in,
+  .intro-logo.is-out {
+    translate: -50% -50%;
+    filter: none;
+  }
+}

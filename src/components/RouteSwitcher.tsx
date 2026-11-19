@@ -13,6 +13,7 @@ export const ROUTES = [
   { path: '/jira-ticket', label: 'Jira ticket' },
   { path: '/process', label: 'Process' },
   { path: '/buttons', label: 'Buttons' },
+  { path: '/intro', label: 'Intro' },
 ] as const
 
 export default function RouteSwitcher() {

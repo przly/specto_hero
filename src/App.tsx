@@ -10,6 +10,7 @@ import ServiceCardPage from './pages/ServiceCardPage'
 import JiraTicketPage from './pages/JiraTicketPage'
 import ProcessPage from './pages/ProcessPage'
 import ButtonsPage from './pages/ButtonsPage'
+import IntroPage from './pages/IntroPage'
 import RouteSwitcher from './components/RouteSwitcher'
 import TriggerLineOverlay from './components/TriggerLineOverlay'
 
@@ -28,6 +29,7 @@ function App() {
         <Route path="/jira-ticket" element={<JiraTicketPage />} />
         <Route path="/process" element={<ProcessPage />} />
         <Route path="/buttons" element={<ButtonsPage />} />
+        <Route path="/intro" element={<IntroPage />} />
       </Routes>
       <RouteSwitcher />
       <TriggerLineOverlay />
