@@ -17,6 +17,20 @@
   display: block;
 }
 
+/* Fill behind the black logo that hides the video while it loads. Fades out
+   once the video starts playing, in step with the logo's fade. */
+.intro-cover {
+  position: absolute;
+  inset: 0;
+  background: #f8f8f8;
+  transition: opacity 300ms ease-in;
+}
+
+.intro-cover.is-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* Navbar: parked fully above the viewport (its own height plus the top
    padding and shadow), then slides down once the video ends. `translate`
    rather than `transform` so it stays off the header's own styles. */
@@ -41,45 +55,21 @@
   }
 }
 
-/* Black logo centered on the held first frame. Appears with the frame
-   (rises 12px out of a blur), leaves as playback starts (lifts on up into a
-   blur, faster and ease-in so it clears before the video gets going). */
+/* Black logo centered on the held first frame. Its mark and letters move
+   on their own (IntroLogo, the per-word text reveal); the SVG's box is the
+   mask they slide through. */
 .intro-logo {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: clamp(140px, 18vw, 240px);
-  height: auto;
-  translate: -50% calc(-50% + 12px);
-  opacity: 0;
-  filter: blur(8px);
-}
-
-.intro-logo.is-in {
+  /* Same size as the white logo in the navbar (SiteHeader: 16px, 20px lg+) */
+  width: auto;
+  height: 16px;
+  aspect-ratio: 109 / 24;
+  overflow: hidden;
   translate: -50% -50%;
-  opacity: 1;
-  filter: blur(0);
-  transition:
-    translate 600ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 400ms ease-out,
-    filter 500ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.intro-logo.is-out {
-  translate: -50% calc(-50% - 12px);
-  opacity: 0;
-  filter: blur(8px);
-  transition:
-    translate 300ms cubic-bezier(0.7, 0, 0.84, 0),
-    opacity 300ms ease-in,
-    filter 300ms ease-in;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .intro-logo,
-  .intro-logo.is-in,
-  .intro-logo.is-out {
-    translate: -50% -50%;
-    filter: none;
-  }
+@media (min-width: 1024px) {
+  .intro-logo { height: 20px; }
 }
